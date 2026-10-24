@@ -29,6 +29,7 @@ const STATUS_ICON_BG := 24.0
 const STATUS_ICON_STEP := 26.0
 const STATUS_ICON_TEX := {
 	"prot": preload("res://assets/ICO_PROTECAO.svg"),
+	"barreira": preload("res://assets/ICO_BARREIRA.svg"),
 	"semhonra": preload("res://assets/ICO_CAVEIRA.svg"),
 	"veneno": preload("res://assets/ICO_VENENO.svg"),
 	"furia": preload("res://assets/ICO_FURIA.svg"),
@@ -37,12 +38,9 @@ const STATUS_ICON_TEX := {
 var _status_icons: Dictionary = {}     # chave -> {"ico": TextureRect, "bg": TextureRect}
 var _status_order: Array[String] = []  # ordem de aquisição (índice 0 = topo)
 static var _icon_bg_tex: ImageTexture
-## (1.49.77) BARREIRA: painel de energia semitransparente (topo da carta para
-## o jogador principal; base, apontando p/ o campo do jogador, para a IA).
-const BAR_TEX := preload("res://assets/VFX_BARREIRA_MAGICA.png")
-var _barrier: TextureRect
-var _barrier_on := false
-var _barrier_pulse: Tween
+## (1.49.94) BARREIRA: sem painel/animação própria na carta (regra do dono):
+## o status é comunicado SOMENTE pelo ícone no canto superior direito
+## (mesma linguagem dos demais status, regra 1.49.91) + detalhes no zoom.
 ## (1.49.82) status CANSADO (tapped): zzz saindo da carta.
 var _sleep_on := false
 var dying := false
@@ -62,7 +60,6 @@ var _baked_power := -1
 
 var _hl: Panel
 var _face: TextureRect
-var _status_label: Label
 var _baker_conn := false
 var _frozen_rect: ColorRect
 var _target_rect: ColorRect
@@ -120,19 +117,8 @@ func _build() -> void:
 	_target_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_target_rect.visible = false
 	add_child(_target_rect)
-	_status_label = Label.new()
-	_status_label.add_theme_font_size_override("font_size", 5)
-	if CardArt.baloo(700) != null:
-		_status_label.add_theme_font_override("font", CardArt.baloo(700))
-	_status_label.add_theme_color_override("font_color", Color(0.62, 0.42, 0.02))
-	_status_label.clip_text = true
-	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	var sz: Rect2 = CardArt.Z_STATUS
-	_status_label.position = Vector2(sz.position.x * w, sz.position.y * h)
-	_status_label.size = Vector2(sz.size.x * w, sz.size.y * h)
-	_status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_status_label)
+	# (1.49.94) SEM texto de status na carta (regra do dono): os status são
+	# comunicados só pelos ícones no canto superior direito + detalhes no zoom.
 	_frozen_rect = ColorRect.new()
 	_frozen_rect.color = Color(0.45, 0.75, 1.0, 0.22)
 	_frozen_rect.position = Vector2.ZERO
@@ -162,25 +148,6 @@ func _build() -> void:
 	_wall.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wall.visible = false
 	add_child(_wall)
-	# (1.49.77) painel da BARREIRA: semitransparente, curvado, bem visível
-	_barrier = TextureRect.new()
-	_barrier.texture = BAR_TEX
-	_barrier.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_barrier.stretch_mode = TextureRect.STRETCH_SCALE
-	_barrier.size = Vector2(w + 8, 52)
-	if owner_pi == 0:
-		_barrier.position = Vector2(-4, -14)
-	else:
-		# IA: na parte de BAIXO da carta, apontada p/ o campo do jogador
-		_barrier.flip_v = true
-		_barrier.position = Vector2(-4, h - 38)
-	_barrier.pivot_offset = _barrier.size / 2.0
-	# (1.49.79) blend NORMAL (folha semitransparente como na referência):
-	# muito mais visível sobre a carta do que blend aditivo
-	_barrier.modulate = Color(1, 1, 1, 0)
-	_barrier.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_barrier.visible = false
-	add_child(_barrier)
 
 
 func _apply_face() -> void:
@@ -217,25 +184,10 @@ func refresh() -> void:
 	if pw != _baked_power:
 		_baked_power = pw
 		_apply_face()
-	var chips: Array[String] = []
-	# (1.49.66) Sem textos amarelos "PROTEGIDO"/"VULNERAVEL" na carta: a
-	# Proteção é comunicada pela redoma + ícone no zoom (regra do dono).
-	if int(card.get("barrier_turns", 0)) != 0:
-		chips.append("BARREIRA")
-	if int(card.get("poison_turns", 0)) > 0:
-		chips.append("ENVENENADO(%d)" % int(card["poison_turns"]))
-	if int(card.get("burn_turns", 0)) > 0:
-		chips.append("CHAMAS(%d)" % int(card["burn_turns"]))
-	if int(card.get("fury_stacks", 0)) > 0:
-		chips.append("FURIA+%d" % int(card["fury_stacks"]))
-	if card.get("prision", false):
-		chips.append("PRESO")
-	if card.get("silenced", false):
-		chips.append("SILENCIADO")
-	if int(card.get("charm_turns", 0)) > 0:
-		chips.append("ENFEITICADO")
-	var stx: String = " ".join(chips)
-	_status_label.text = stx.substr(0, 34) + ("…" if stx.length() > 34 else "")
+	# (1.49.94) NENHUM texto de status (amarelo ou não) sobre a carta em campo
+	# (regra do dono): BARREIRA/ENVENENADO/CHAMAS/FÚRIA/PRESO/SILENCIADO/
+	# ENFEITICADO são comunicados só pelos ÍCONES no canto superior direito
+	# (regra 1.49.91) e pelos detalhes no zoom da carta.
 	_frozen_rect.visible = int(card.get("frozen_turns", 0)) > 0
 	_update_status_vfx()
 	if _hl != null:
@@ -258,14 +210,7 @@ func refresh() -> void:
 	# (1.49.91) status em campo = SOMENTE ícones no canto superior direito,
 	# empilhados na ordem de aquisição (regras 2–6 da 1.49.91).
 	_refresh_status_icons()
-	# (1.49.77) BARREIRA: painel de energia enquanto barrier_turns != 0
-	var bar_on: bool = int(card.get("barrier_turns", 0)) != 0
-	if bar_on and not _barrier_on:
-		_barrier_on = true
-		_barrier_show()
-	elif not bar_on and _barrier_on:
-		_barrier_on = false
-		_barrier_hide()
+	# (1.49.94) BARREIRA: sem painel/animação na carta — só o ícone da pilha.
 	# (1.49.73/81) MURALHA: muro de pedra sobe do chão enquanto wall_buff > 0
 	var wall_on: bool = int(card.get("wall_buff", 0)) > 0
 	if wall_on and not _wall_on:
@@ -274,36 +219,6 @@ func refresh() -> void:
 	elif not wall_on and _wall_on:
 		_wall_on = false
 		_wall_hide()
-
-
-func _barrier_show() -> void:
-	if _barrier == null or not is_instance_valid(_barrier) or _barrier.visible:
-		return
-	_barrier.visible = true
-	_barrier.modulate = Color(1, 1, 1, 0)
-	var tw := create_tween()
-	tw.tween_property(_barrier, "modulate:a", 1.0, 0.3)
-	if _barrier_pulse != null and _barrier_pulse.is_valid():
-		_barrier_pulse.kill()
-	_barrier_pulse = create_tween()
-	_barrier_pulse.set_loops()
-	_barrier_pulse.tween_property(_barrier, "modulate:a", 0.8, 0.7).set_trans(Tween.TRANS_SINE)
-	_barrier_pulse.tween_property(_barrier, "modulate:a", 1.0, 0.7).set_trans(Tween.TRANS_SINE)
-
-
-func _barrier_hide() -> void:
-	if _barrier_pulse != null and _barrier_pulse.is_valid():
-		_barrier_pulse.kill()
-		_barrier_pulse = null
-	if _barrier == null or not is_instance_valid(_barrier) or not _barrier.visible:
-		return
-	var tw := create_tween()
-	tw.tween_property(_barrier, "modulate:a", 0.0, 0.25)
-	tw.tween_callback(func() -> void:
-		if is_instance_valid(_barrier):
-			_barrier.visible = false
-			_barrier.modulate = Color(1, 1, 1, 0)
-	)
 
 
 func _sleep_start() -> void:
@@ -559,8 +474,6 @@ func play_death() -> void:
 	hide_status_icons()
 	if _wall != null and is_instance_valid(_wall):
 		_wall.visible = false
-	if _barrier != null and is_instance_valid(_barrier):
-		_barrier.visible = false
 	if _zoom_tw != null and _zoom_tw.is_valid():
 		_zoom_tw.kill()
 	if _slot_tw != null and _slot_tw.is_valid():
@@ -669,6 +582,8 @@ func _active_statuses() -> Array[String]:
 	var keys: Array[String] = []
 	if int(card.get("shield_turns", 0)) != 0:
 		keys.append("prot")
+	if int(card.get("barrier_turns", 0)) != 0:
+		keys.append("barreira")   # (1.49.94) BARREIRA = só ícone no canto
 	if _has_sem_honra():
 		keys.append("semhonra")
 	if int(card.get("poison_turns", 0)) > 0:

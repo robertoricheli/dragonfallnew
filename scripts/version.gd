@@ -4,9 +4,23 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.49.93"
+const CURRENT := "1.49.94"
 
 const NOTES := [
+	{
+		"ver": "1.49.94",
+		"data": "2026-10-24",
+		"mudancas": [
+			"DIREÇÃO DE ARTE NOVA (pintura digital semi-3D, referência Hearthstone): todos os assets de animação criados agora (ovo, mandíbula, relógio) são arte pintada sobre fundo preto com blend aditivo — nunca cartoon, nunca fotorrealista.",
+			"PESADELO da IA não abre mais no topo/esquerda da tela: o cone de fantasmas desce do centro da tela direto sobre o campo do jogador afetado; guarda anti-duplicata garante UM cone por invocação.",
+			"INVOCAR DRAGÃO refeito com o MESMO roteiro: 5 estados pintados do ovo (inteiro -> fissuras finas -> fissuras fundas com feixes -> casca explodindo -> casca aberta) + tremor crescente com squash&stretch, poeira, anel rúnico no chão, lascas, explosão, anel de choque e pilar de energia.",
+			"NUNCA mais texto amarelo/redundante de status sobre a carta do campeão em campo: BARREIRA/ENVENENADO/CHAMAS/FÚRIA/PRESO/SILENCIADO/ENFEITICADO são comunicados SOMENTE pelos ícones no canto superior direito (pilha por ordem de aquisição) e pelos detalhes no zoom.",
+			"BARREIRA sem o painel pulsante sobre a carta (Campeões e Talento): o status virou ícone na pilha do canto (mesma linguagem da 1.49.91); os detalhes continuam no zoom da carta.",
+			"MORDIDA VENENOSA NOVA sem cobra: uma MANDÍBULA ESPECTRAL DE PRESAS venenosas (4 frames pintados) abre sobre o alvo, dá o BOTE em 0,12 s com clarão, anel, marcas de presa e respingos de veneno, treme cravada escorrendo veneno e dissolve em névoa tóxica.",
+			"NOVA animação DESACELERAR (Campeão e Talento): 0,5 s após a carta entrar em campo, um RELÓGIO MÁGICO de fantasia (bronze, runas, cristal ciano — nada moderno) aparece por 2,0 s sobre o campo adversário com ponteiros VOLTANDO PARA TRÁS em ticks, ondas temporais em câmera lenta e areia rúnica.",
+			"Novo teste de regressão t_94 (pesadelo da IA sem duplicata no topo + campo afetado; sem texto de status; barreira como ícone; VFX ovo/mordida/relógio rodando headless); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.49.93",
 		"data": "2026-10-22",
@@ -97,17 +111,6 @@ const NOTES := [
 			"EDITOR DE CARTA: botões A+/A- ajustam o tamanho dos TEXTOS da carta; editor de texto ganhou ENTRELINHA (L-/L+), além de Enter=quebra real, negrito por trecho, centralizar e fonte.",
 			"CANSADO: zzz mais GROSSOS (corpo maior + contorno) saindo da JANELA DE ARTE do campeão; ícone de sono refeito (lua + olhos fechados + Zz).",
 			"FORJA: VFX carregado por caminho direto (imune a cache de classes) — a animação aparece e o campeão NÃO some durante ela.",
-		],
-	},
-	{
-		"ver": "1.49.83",
-		"data": "2026-10-22",
-		"mudancas": [
-			"Linha central e banner de turno MAIS FINOS (banner 32 px, borda 1 px) e SEM o contador 'Turno N'.",
-			"Fim da 'parede invisível': o banner não fica mais por cima de cartas/VFX (zzz do CANSADO e MURALHA aparecem inteiros); clip das cartas removido.",
-			"FORJA corrigida: a animação do martelo/bigorna agora é orquestrada pela Tela de Combate (aparece sempre) e a carta entra no campo só no fim dela, com saque livre 0,5 s depois.",
-			"EDITOR estilo Photoshop: botões -/+ removidos — redimensione pelas 8 ALÇAS arrastáveis (cantos/bordas) do elemento selecionado; seleção pelo MENOR retângulo (pega o banner sob o field); cada ícone do Hub é elemento INDIVIDUAL; Arsenal e páginas com mais elementos registrados.",
-			"EDITOR DE TEXTO da carta: ENTER vira quebra de linha real, NEGRITO por trecho selecionado, CENTRALIZAR e troca de FONTE (Baloo/Fredoka/Heavy).",
 		],
 	},
 ]

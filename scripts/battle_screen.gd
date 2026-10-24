@@ -108,6 +108,7 @@ var _talent_anim_until := {}
 var _pesadelo_hero_node: Node2D = null
 var _pesadelo_hero_pi := -1
 var _pesadelo_turn_seen := false
+var _pesadelo_running := {}   # (1.49.94) uid -> cone em andamento (anti-duplicata)
 
 
 func _ready() -> void:
@@ -927,6 +928,12 @@ func _land_summon(v: ChampionView, cold: bool, pi: int) -> void:
 	elif oe == "pesadelo":
 		# (1.49.93) enxurrada de fantasmas 0,5 s após o pouso.
 		_pesadelo_sequence(pi, int(v.card["uid"]))
+	elif oe == "desacelerar":
+		# (1.49.94) relógio mágico no campo adversário 0,5 s após o pouso.
+		_desacelerar_sequence(pi, int(v.card["uid"]))
+	elif te == "desacelerarTalento":
+		# (1.49.94) Talento DESACELERAR: mesmo relógio mágico.
+		_desacelerar_sequence(pi, -1)
 	elif oe == "invokeDragon" or te == "invocarDragaoTalento":
 		# (1.49.93) o ovo do dragão aparece 0,5 s após o pouso e choca.
 		_ovo_sequence(pi)
@@ -1857,23 +1864,51 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 	# (1.49.93) PESADELO: 0,5 s após o pouso, o campeão lança MUITOS FANTASMAS e
 	# fumaça negra em cone sobre o campo adversário (2,0 s); no fim, o jogador
 	# afetado fica sem o próximo saque livre e ganha os fantasmas sobre o herói.
+	# (1.49.94) anti-duplicata: NUNCA dois cones por invocação; e quando a IA
+	# usa, NADA de animação no topo/esquerda (campo ou caster da IA): o pesadelo
+	# desce do centro da tela direto sobre o campo do jogador afetado.
+	if _pesadelo_running.has(uid):
+		return
+	_pesadelo_running[uid] = true
 	await get_tree().create_timer(0.5).timeout
 	if state == null or not is_inside_tree():
+		_pesadelo_running.erase(uid)
 		return
-	var v: ChampionView = champ_views.get(uid)
-	var src: Vector2 = Vector2(FIELD_CX, PL_ROW_CY if pi == 0 else AI_ROW_CY)
-	if v != null and is_instance_valid(v) and not v.dying:
-		src = v.global_position + v.size / 2.0
 	var foe: int = 1 - pi
 	var dst := Vector2(FIELD_CX, AI_ROW_CY if foe == 1 else PL_ROW_CY)
+	var src: Vector2
+	if pi == 1:
+		src = Vector2(FIELD_CX, (AI_ROW_CY + PL_ROW_CY) / 2.0)
+	else:
+		src = Vector2(FIELD_CX, PL_ROW_CY)
+		var v: ChampionView = champ_views.get(uid)
+		if v != null and is_instance_valid(v) and not v.dying:
+			src = v.global_position + v.size / 2.0
 	var fx = load("res://scripts/vfx_pesadelo.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(src, dst)
 	await fx.finished
+	_pesadelo_running.erase(uid)
 	if state == null or not is_inside_tree():
 		return
 	state.resolve_pesadelo()
 	_show_pesadelo_hero(foe)
+
+
+func _desacelerar_sequence(pi: int, _uid: int) -> void:
+	# (1.49.94) DESACELERAR (Campeão e Talento): 0,5 s após a carta entrar em
+	# campo, um RELÓGIO MÁGICO de fantasia (bronze, runas, ponteiros voltando
+	# para trás) aparece sobre o campo adversário por 2,0 s. O efeito de jogo
+	# (1 ação a menos) já é aplicado pelo GameState; aqui é só a animação.
+	await get_tree().create_timer(0.5).timeout
+	if state == null or not is_inside_tree():
+		return
+	var foe: int = 1 - pi
+	var dst := Vector2(FIELD_CX, AI_ROW_CY if foe == 1 else PL_ROW_CY)
+	var fx = load("res://scripts/vfx_desacelerar.gd").new()
+	fx_layer.add_child(fx)
+	fx.setup(dst)
+	await fx.finished
 
 
 func _show_pesadelo_hero(pi: int) -> void:
