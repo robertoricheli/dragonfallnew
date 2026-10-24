@@ -114,7 +114,7 @@ func _run_fx(scr: GDScript, args: Array, expect_burst: bool) -> bool:
 func _t_vfx_all() -> void:
 	var a := Vector2(640, 473)
 	await _run_fx(OVO, [a], true)
-	await _run_fx(MOR, [a, null], false)
+	await _run_fx(MOR, [a, a], false)
 	await _run_fx(DES, [a], false)
 	print("VFX Ovo(5 frames)/Mordida(sem cobra)/Relógio headless: OK")
 

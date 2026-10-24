@@ -1932,16 +1932,21 @@ func _clear_pesadelo_hero() -> void:
 	_pesadelo_turn_seen = false
 
 
-func _on_fx_mordida(_pi: int, _src: int, target_uid: int) -> void:
-	# (1.49.93) MORDIDA VENENOSA AAA: a serpente crava as presas no alvo; ao
+func _on_fx_mordida(pi: int, src_uid: int, target_uid: int) -> void:
+	# (1.49.95) MORDIDA VENENOSA: a serpente mágica NASCE da carta do campeão
+	# que mordeu, desliza pelo campo e crava a mordida no alvo (2,0 s); ao
 	# terminar, aplica o status ENVENENADO (morte em 2 rodadas).
 	var v: ChampionView = champ_views.get(target_uid)
 	if v == null or not is_instance_valid(v):
 		state.resolve_mordida(target_uid)
 		return
+	var src := Vector2(FIELD_CX, PL_ROW_CY if pi == 0 else AI_ROW_CY)
+	var vs: ChampionView = champ_views.get(src_uid)
+	if vs != null and is_instance_valid(vs) and not vs.dying:
+		src = vs.global_position + vs.size / 2.0
 	var fx = load("res://scripts/vfx_mordida.gd").new()
 	fx_layer.add_child(fx)
-	fx.setup(v.global_position + v.size / 2.0, v)
+	fx.setup(src, v.global_position + v.size / 2.0)
 	fx.finished.connect(func() -> void:
 		if state != null and is_inside_tree():
 			state.resolve_mordida(target_uid))

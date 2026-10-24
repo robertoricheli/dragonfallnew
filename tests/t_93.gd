@@ -174,7 +174,9 @@ func _run_fx(path: String, args: Array, expect_min: float, expect_max: float, wa
 			_fail("%s: não emitiu burst" % path)
 		else:
 			var bd := (int(bursted[0]) - t0) / 1000.0
-			if bd < 0.6 or bd > 1.2:
+			# (1.49.95) o burst do ovo novo casa com a sequencia de 20 frames
+			# (luz do choco ~1.32 s simulado / ~1.2-1.4 s reais)
+			if bd < 0.6 or bd > 1.45:
 				_fail("%s: burst fora da janela: %.2fs" % [path, bd])
 	await get_tree().process_frame
 	if is_instance_valid(fx):
@@ -193,15 +195,15 @@ func _t_vfx_all() -> void:
 	print("VFX Ovo do Dragão (%.2fs, com burst): OK" % d3)
 	var d4 := await _run_fx("res://scripts/vfx_pesadelo.gd", [a, b], 1.8, 2.4, false)
 	print("VFX Pesadelo/enxurrada (%.2fs): OK" % d4)
-	var d5 := await _run_fx("res://scripts/vfx_mordida.gd", [a, null], 1.4, 2.0, false)
-	print("VFX Mordida AAA (%.2fs): OK" % d5)
+	var d5 := await _run_fx("res://scripts/vfx_mordida.gd", [a, a], 1.8, 2.4, false)
+	print("VFX Mordida serpente (%.2fs): OK" % d5)
 	var d6 := await _run_fx("res://scripts/vfx_baforada.gd", [a, b], 1.5, 2.0, false)
 	print("VFX Baforada em cone (%.2fs): OK" % d6)
-	# assets gerados existem
-	for p in ["res://assets/OVO_DRAGAO.png", "res://assets/OVO_DRAGAO_RACHADO.png", "res://assets/OVO_DRAGAO_ABERTO.png", "res://assets/MANDIBULA_VENENO.png", "res://assets/FANTASMA_PESADELO.png", "res://assets/FANTASMA_PESADELO2.png"]:
+	# assets atuais das animações existem (sheets do dono desde a 1.49.95)
+	for p in ["res://assets/OVO_SEQ_F01.png", "res://assets/OVO_SEQ_F20.png", "res://assets/SERPENTE_VENENO.png", "res://assets/RELOGIO_SEQ_F01.png", "res://assets/RELOGIO_SEQ_F20.png", "res://assets/FANTASMA_PESADELO.png", "res://assets/FANTASMA_PESADELO2.png"]:
 		if not ResourceLoader.exists(p):
 			_fail("asset ausente: " + p)
-	print("Assets gerados (ovo/mandíbula/fantasmas): OK")
+	print("Assets atuais (ovo/serpente/relógio/fantasmas): OK")
 
 
 # ---------------------------------------------------------------- batalha

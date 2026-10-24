@@ -4,9 +4,20 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.49.94"
+const CURRENT := "1.49.95"
 
 const NOTES := [
+	{
+		"ver": "1.49.95",
+		"data": "2026-10-24",
+		"mudancas": [
+			"INVOCAR DRAGÃO com o SPRITE SHEET pintado do dono (20 frames: ovo aparece, racha, choca e vira luz): a sequencia roda SOMENTE sobre o slot onde o Filhote vai cair (nada de flash/pilar na tela inteira), com cadencia variavel, sombra, anel runico, tremor, clarao contido, lascas e faiscas locais.",
+			"MORDIDA VENENOSA refeita com a SERPENTE MAGICA VERDE pintada (arte do dono): ela NASCE da carta Campeao em campo, DESLIZA pelo campo em curva com ondulacao e rastro de vapores, mira uma pausa e da o BOTE cravando a mordida no alvo (clarao, anel, marcas de presa, respingos e poca de veneno); nunca maior que uma carta em campo; duracao 2,0 s.",
+			"DESACELERAR (Campeao e Talento) refeito com o SPRITE SHEET do relogio arcano do dono (20 frames: materializa, ponteiros para tras, vortice de tempo, dissolve): aparece por 2,0 s sobre o campo adversario UM POUCO MAIOR que uma carta, contido na linha adversaria, com anel runico local, ticks e areia de tempo.",
+			"Assets antigos das animacoes substituidas foram removidos do projeto (ovo/mordida/relogio da 1.49.94 e anteriores) — o historico do git os preserva.",
+			"Novo teste de regressao t_95 (tamanhos/limites das 3 animacoes: ovo no slot, serpente <= carta, relogio > carta e contido; mordida origem->alvo na Tela de Combate com veneno no fim); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.49.94",
 		"data": "2026-10-24",
@@ -101,16 +112,6 @@ const NOTES := [
 			"EDITOR DE CARTA: removidos os botões A+/A- — agora cada zona de texto selecionada ganha ALÇAS estilo Ctrl+T que aumentam/diminuem o TEXTO só daquela zona e só daquela carta (sem espelhar em outros textos); setas do teclado movem a zona.",
 			"EDITOR: clicar em outro elemento/zona já SELECIONA ele na hora (sem sair e voltar); setas do teclado movem o elemento selecionado também no editor de layout.",
 			"EDITOR: destaca e seleciona SOMENTE elementos da tela/página ATUAL (nada de highlights de outras telas).",
-		],
-	},
-	{
-		"ver": "1.49.84",
-		"data": "2026-10-22",
-		"mudancas": [
-			"EDITOR: barra compacta com botões SALVAR/RESETAR/SAIR PEQUENOS e sempre funcionais (o clique não era mais consumido na barra); nós de páginas trocadas são purgados — fim do congelamento 'previously freed' após salvar carta.",
-			"EDITOR DE CARTA: botões A+/A- ajustam o tamanho dos TEXTOS da carta; editor de texto ganhou ENTRELINHA (L-/L+), além de Enter=quebra real, negrito por trecho, centralizar e fonte.",
-			"CANSADO: zzz mais GROSSOS (corpo maior + contorno) saindo da JANELA DE ARTE do campeão; ícone de sono refeito (lua + olhos fechados + Zz).",
-			"FORJA: VFX carregado por caminho direto (imune a cache de classes) — a animação aparece e o campeão NÃO some durante ela.",
 		],
 	},
 ]

@@ -1,49 +1,50 @@
 class_name DesacelerarFX
 extends Node2D
-## (1.49.94) HABILIDADE/CARTA TALENTO DESACELERAR — 0,5 s após a carta entrar
-## em campo, um RELÓGIO MÁGICO DE FANTASIA (bronze arcano, runas, cristal ciano
-## — NADA moderno/realista; arte pintada semi-3D estilo Hearthstone em
-## assets/RELOGIO_*.png, fundo preto + blend aditivo) aparece SOBRE O CAMPO
-## ADVERSÁRIO por 2,0 s: materializa-se com anel de runas, os PONTEIROS
-## (5 frames pintados: 0°/30°/60°/90°/120°) GIRAM PARA TRÁS com "ticks"
-## mecânico-mágicos (troca de frame + repique de rotação + clarão de tick),
-## anéis de ONDA TEMPORAL se expandem em câmera lenta, areia rúnica sobe e o
-## relógio flutua balançando; no fim, DISSOLVE em areia de tempo (RELOGIO_F4).
-## Uso: add_child(fx); fx.setup(pos_global_centro_campo_adversario)
+## (1.49.95) DESACELERAR (Campeão e Talento) — refeita com o RELÓGIO MÁGICO
+## de 20 FRAMES pintados (assets/RELOGIO_SEQ_F01..F20.png, sprite sheet do
+## dono: relógio arcano dourado com ampulhetas e vórtice azul de tempo, que
+## materializa, gira os ponteiros para trás e dissolve): aparece SOBRE O
+## CAMPO ADVERSÁRIO por 2,0 s, UM POUCO MAIOR que uma carta (170 px de
+## altura vs. 140 px da carta), contido na linha adversária (nada de ondas
+## na tela inteira): cadência variável (materializa lento -> ticks aceleram
+## -> dissolve), bob e balanço suaves, anel rúnico local girando no chão,
+## clarões de tick contidos e areia de tempo subindo do próprio relógio.
+## Contrato: finished em 2,0 s. Uso: add_child(fx); fx.setup(centro_linha_adv)
 
 signal finished
 
 const DUR := 2.0
-const MAT_END := 0.35        # fim da materialização
-const DISSOLVE_AT := 1.65    # início da dissolução
-const TICK_EVERY := 0.22     # cadência dos ticks dos ponteiros
+const SCALE := 0.664          # 256 px * 0.664 = 170 px (> carta 140 px)
+
+## cadência: instante em que cada frame (0..19) entra
+const FRAME_AT := [
+	0.00, 0.10, 0.20, 0.30, 0.40,          # 1-5  materializa
+	0.52, 0.64, 0.76, 0.88, 1.00,          # 6-10 ponteiros voltando (ticks)
+	1.10, 1.20, 1.30, 1.40, 1.50,          # 11-15 ticks + vórtice
+	1.60, 1.70, 1.80, 1.90, 2.00,          # 16-20 dissolve em magia
+]
 
 var _t := 0.0
 var _done := false
 var _started := false
-var _next_tick := MAT_END
-var _tick_i := 0
-var _next_ripple := 0.45
+var _frame := -1
 
-var _face: Sprite2D
-var _hands: Sprite2D
-var _ghost_face: Sprite2D    # materialização (F1) e dissolução (F4)
-var _runering: Sprite2D
-var _tickflash: Sprite2D
-var _ripple_a: Sprite2D
-var _ripple_b: Sprite2D
+var _seq: Sprite2D
+var _rune: Sprite2D
+var _tick: Sprite2D
 var _sand: CPUParticles2D
-var _rune_sparks: CPUParticles2D
 
-const TEX_F1 := preload("res://assets/RELOGIO_F1.png")
-const TEX_FACE := preload("res://assets/RELOGIO_FACE.png")
-const TEX_F4 := preload("res://assets/RELOGIO_F4.png")
-const HAND_FRAMES := [
-	preload("res://assets/RELOGIO_MAOS.png"),      # 0°
-	preload("res://assets/RELOGIO_MAOS_R1.png"),   # 30°
-	preload("res://assets/RELOGIO_MAOS_R2.png"),   # 60°
-	preload("res://assets/RELOGIO_MAOS_R3.png"),   # 90°
-	preload("res://assets/RELOGIO_MAOS_R4.png"),   # 120°
+const FRAMES := [
+	preload("res://assets/RELOGIO_SEQ_F01.png"), preload("res://assets/RELOGIO_SEQ_F02.png"),
+	preload("res://assets/RELOGIO_SEQ_F03.png"), preload("res://assets/RELOGIO_SEQ_F04.png"),
+	preload("res://assets/RELOGIO_SEQ_F05.png"), preload("res://assets/RELOGIO_SEQ_F06.png"),
+	preload("res://assets/RELOGIO_SEQ_F07.png"), preload("res://assets/RELOGIO_SEQ_F08.png"),
+	preload("res://assets/RELOGIO_SEQ_F09.png"), preload("res://assets/RELOGIO_SEQ_F10.png"),
+	preload("res://assets/RELOGIO_SEQ_F11.png"), preload("res://assets/RELOGIO_SEQ_F12.png"),
+	preload("res://assets/RELOGIO_SEQ_F13.png"), preload("res://assets/RELOGIO_SEQ_F14.png"),
+	preload("res://assets/RELOGIO_SEQ_F15.png"), preload("res://assets/RELOGIO_SEQ_F16.png"),
+	preload("res://assets/RELOGIO_SEQ_F17.png"), preload("res://assets/RELOGIO_SEQ_F18.png"),
+	preload("res://assets/RELOGIO_SEQ_F19.png"), preload("res://assets/RELOGIO_SEQ_F20.png"),
 ]
 
 
@@ -51,84 +52,50 @@ func setup(at: Vector2) -> void:
 	position = at
 	z_index = 88
 	_started = true
-	# ---- anel de runas de invocação do relógio
-	_runering = Sprite2D.new()
-	_runering.texture = Vfx.ring("desac_rune", 190, Color(0.35, 0.90, 1.0, 0.85), 0.05)
-	_runering.material = Vfx.add_mat()
-	_runering.modulate = Color(1, 1, 1, 0)
-	add_child(_runering)
-	# ---- face fantasma (materialização F1 / dissolução F4)
-	_ghost_face = Sprite2D.new()
-	_ghost_face.texture = TEX_F1
-	_ghost_face.material = Vfx.add_mat()
-	_ghost_face.modulate = Color(1, 1, 1, 0)
-	_ghost_face.scale = Vector2(0.17, 0.17)
-	add_child(_ghost_face)
-	# ---- a face do relógio
-	_face = Sprite2D.new()
-	_face.texture = TEX_FACE
-	_face.material = Vfx.add_mat()
-	_face.modulate = Color(1, 1, 1, 0)
-	_face.scale = Vector2(0.17, 0.17)
-	add_child(_face)
-	# ---- os ponteiros (frames pintados, girando PARA TRÁS)
-	_hands = Sprite2D.new()
-	_hands.texture = HAND_FRAMES[4]
-	_hands.material = Vfx.add_mat()
-	_hands.modulate = Color(1, 1, 1, 0)
-	_hands.scale = Vector2(0.15, 0.15)
-	add_child(_hands)
-	# ---- clarão de tick
-	_tickflash = Sprite2D.new()
-	_tickflash.texture = Vfx.radial("desac_tick", 120, Color(0.55, 0.95, 1.0, 0.8), 0.25)
-	_tickflash.material = Vfx.add_mat()
-	_tickflash.modulate = Color(1, 1, 1, 0)
-	add_child(_tickflash)
-	# ---- ondas temporais (2 anéis alternados)
-	_ripple_a = _mk_ripple("desac_rip_a")
-	_ripple_b = _mk_ripple("desac_rip_b")
-	# ---- areia rúnica que sobe (tempo escapando)
+	# ---- anel rúnico local no chão da linha adversária
+	_rune = Sprite2D.new()
+	_rune.texture = Vfx.ring("desac2_rune", 130, Color(0.35, 0.90, 1.0, 0.8), 0.05)
+	_rune.material = Vfx.add_mat()
+	_rune.scale = Vector2(1.0, 0.32)
+	_rune.position = Vector2(0, 74)
+	_rune.modulate = Color(1, 1, 1, 0)
+	add_child(_rune)
+	# ---- a sequencia de 20 frames do relógio
+	_seq = Sprite2D.new()
+	_seq.texture = FRAMES[0]
+	_seq.centered = true
+	_seq.scale = Vector2(SCALE, SCALE)
+	_seq.modulate = Color(1, 1, 1, 0)
+	add_child(_seq)
+	# ---- clarão de tick CONTIDO
+	_tick = Sprite2D.new()
+	_tick.texture = Vfx.radial("desac2_tick", 90, Color(0.55, 0.95, 1.0, 0.75), 0.25)
+	_tick.material = Vfx.add_mat()
+	_tick.modulate = Color(1, 1, 1, 0)
+	add_child(_tick)
+	# ---- areia de tempo subindo do próprio relógio
 	_sand = CPUParticles2D.new()
 	_sand.texture = Vfx.spark(14, Color(0.55, 0.95, 1.0))
 	_sand.material = Vfx.add_mat()
 	_sand.emitting = false
-	_sand.amount = 30
-	_sand.lifetime = 0.9
+	_sand.amount = 22
+	_sand.lifetime = 0.7
 	_sand.direction = Vector2(0, -1)
-	_sand.spread = 60.0
-	_sand.initial_velocity_min = 18.0
-	_sand.initial_velocity_max = 46.0
-	_sand.gravity = Vector2(0, -6)
-	_sand.scale_amount_min = 0.5
-	_sand.scale_amount_max = 1.1
+	_sand.spread = 45.0
+	_sand.initial_velocity_min = 16.0
+	_sand.initial_velocity_max = 40.0
+	_sand.gravity = Vector2(0, -8)
+	_sand.scale_amount_min = 0.4
+	_sand.scale_amount_max = 0.9
 	add_child(_sand)
-	_rune_sparks = CPUParticles2D.new()
-	_rune_sparks.texture = Vfx.spark(18, Color(1.0, 0.85, 0.45))
-	_rune_sparks.material = Vfx.add_mat()
-	_rune_sparks.emitting = false
-	_rune_sparks.amount = 18
-	_rune_sparks.lifetime = 0.7
-	_rune_sparks.direction = Vector2(0, -1)
-	_rune_sparks.spread = 180.0
-	_rune_sparks.initial_velocity_min = 40.0
-	_rune_sparks.initial_velocity_max = 90.0
-	_rune_sparks.gravity = Vector2(0, 60)
-	_rune_sparks.scale_amount_min = 0.4
-	_rune_sparks.scale_amount_max = 0.9
-	add_child(_rune_sparks)
 
 
-func _mk_ripple(key: String) -> Sprite2D:
-	var r := Sprite2D.new()
-	r.texture = Vfx.ring(key, 220, Color(0.45, 0.90, 1.0, 0.7), 0.04)
-	r.material = Vfx.add_mat()
-	r.modulate = Color(1, 1, 1, 0)
-	r.scale = Vector2(1.0, 0.45)
-	add_child(r)
-	return r
-
-
-var _ripple_t := {"a": -1.0, "b": -1.0}
+func _frame_index(t: float) -> int:
+	var idx := 0
+	for i in FRAME_AT.size():
+		if t >= FRAME_AT[i]:
+			idx = i
+	return idx
 
 
 func _process(delta: float) -> void:
@@ -136,71 +103,39 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	var t := _t
-	# ================= materialização (0 .. MAT_END)
-	var mk: float = clampf(t / MAT_END, 0.0, 1.0)
-	var alive: float = 1.0 if t < DISSOLVE_AT else clampf(1.0 - (t - DISSOLVE_AT) / 0.35, 0.0, 1.0)
-	var bob: float = sin(t * 2.6) * 4.0
-	var sway: float = 0.05 * sin(t * 1.9)
-	if t < DISSOLVE_AT:
-		_ghost_face.modulate = Color(1, 1, 1, sin(mk * PI) * 0.9 if t < MAT_END else 0.0)
-		_face.modulate = Color(1, 1, 1, mk * alive * (0.92 + 0.08 * sin(t * 6.0)))
-		_hands.modulate = Color(1, 1, 1, clampf((mk - 0.5) * 2.0, 0.0, 1.0) * alive)
-	else:
-		_ghost_face.texture = TEX_F4
-		var dk: float = clampf((t - DISSOLVE_AT) / 0.35, 0.0, 1.0)
-		_ghost_face.modulate = Color(1, 1, 1, dk * clampf(1.0 - (t - DISSOLVE_AT - 0.1) / 0.25, 0.0, 1.0))
-		_ghost_face.scale = Vector2(0.17, 0.17) * (1.0 + dk * 0.25)
-		_face.modulate = Color(1, 1, 1, alive)
-		_hands.modulate = Color(1, 1, 1, alive)
-	_face.position = Vector2(0, bob)
-	_face.rotation = sway
-	_ghost_face.position = Vector2(0, bob)
-	_hands.position = Vector2(0, bob)
-	_hands.rotation = sway
-	# anel de runas
-	_runering.modulate = Color(1, 1, 1, sin(mk * PI) * 0.85 if t < MAT_END * 2.0 else 0.0)
-	_runering.scale = Vector2(0.5 + mk * 0.8, 0.22 + mk * 0.36)
-	_runering.rotation -= delta * 0.8
-	# ================= TICKS: ponteiros PARA TRÁS (frames em ordem reversa)
-	if t >= _next_tick and t < DISSOLVE_AT:
-		_tick_i += 1
-		_next_tick = t + TICK_EVERY
-		# ordem reversa: 4,3,2,1,0,4,3,...  (ponteiros voltando no tempo)
-		var idx: int = HAND_FRAMES.size() - 1 - (_tick_i % HAND_FRAMES.size())
-		_hands.texture = HAND_FRAMES[idx]
-		_tickflash.modulate = Color(1, 1, 1, 0.55)
-		# repique mecânico: rotação volta um pouco e assenta
-		var tw := _hands.create_tween()
-		tw.tween_property(_hands, "rotation", sway - 0.16, 0.05).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(_hands, "rotation", sway, 0.10).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-	if _tickflash.modulate.a > 0.0:
-		_tickflash.modulate = Color(1, 1, 1, maxf(0.0, _tickflash.modulate.a - delta * 2.6))
-	_tickflash.position = Vector2(0, bob)
-	# ================= ONDAS TEMPORAIS em câmera lenta
-	if t >= _next_ripple and t < DISSOLVE_AT:
-		var key: String = "a" if fmod(_tick_i, 2) == 0 else "b"
-		_ripple_t[key] = t
-		_next_ripple = t + 0.55
-	for key in _ripple_t:
-		var t0: float = _ripple_t[key]
-		var r: Sprite2D = _ripple_a if key == "a" else _ripple_b
-		if t0 < 0.0:
-			continue
-		var rt: float = (t - t0) / 1.1   # expansão LENTA (câmera lenta)
-		if rt > 1.0:
-			r.modulate = Color(1, 1, 1, 0)
-			continue
-		r.modulate = Color(1, 1, 1, (1.0 - rt) * 0.6)
-		r.scale = Vector2(0.35 + rt * 1.5, 0.16 + rt * 0.66)
-		r.position = Vector2(0, bob)
-	# ================= partículas
-	if t >= MAT_END and t < DISSOLVE_AT:
+	var idx := _frame_index(t)
+	if idx != _frame:
+		var old := _frame
+		_frame = idx
+		_seq.texture = FRAMES[idx]
+		# clarão de tick a cada troca de frame na fase de ponteiros (6..15)
+		if old >= 0 and idx >= 5 and idx <= 15:
+			_tick.modulate = Color(1, 1, 1, 0.4)
+	# flutuação suave + balanço de pêndulo contido
+	var mk: float = clampf(t / 0.35, 0.0, 1.0)
+	_seq.modulate = Color(1, 1, 1, Ease.out_cubic(mk))
+	_seq.position = Vector2(sin(t * 1.8) * 3.0, sin(t * 2.6) * 4.0 - 6.0)
+	_seq.rotation = 0.045 * sin(t * 2.2)
+	var sc: float = SCALE * lerpf(0.8, 1.0, Ease.out_cubic(mk))
+	_seq.scale = Vector2(sc, sc)
+	# anel rúnico local
+	_rune.modulate = Color(1, 1, 1, sin(mk * PI) * 0.7 if t < 0.8 else 0.30 + 0.15 * sin(t * 5.0))
+	_rune.rotation -= delta * 0.7
+	# clarão de tick decai
+	if _tick.modulate.a > 0.0:
+		_tick.modulate = Color(1, 1, 1, maxf(0.0, _tick.modulate.a - delta * 2.2))
+	# areia de tempo na fase central
+	if t >= 0.45 and t < 1.65:
 		_sand.emitting = true
-		_rune_sparks.emitting = true
 	else:
 		_sand.emitting = false
-		_rune_sparks.emitting = false
 	if t >= DUR and not _done:
 		_done = true
 		finished.emit()
 		queue_free()
+
+
+class Ease:
+	static func out_cubic(x: float) -> float:
+		var inv := 1.0 - x
+		return 1.0 - inv * inv * inv
