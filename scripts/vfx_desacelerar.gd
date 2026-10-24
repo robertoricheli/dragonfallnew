@@ -1,81 +1,69 @@
 class_name DesacelerarFX
 extends Node2D
-## (1.49.95) DESACELERAR (Campeão e Talento) — refeita com o RELÓGIO MÁGICO
-## de 20 FRAMES pintados (assets/RELOGIO_SEQ_F01..F20.png, sprite sheet do
-## dono: relógio arcano dourado com ampulhetas e vórtice azul de tempo, que
-## materializa, gira os ponteiros para trás e dissolve): aparece SOBRE O
-## CAMPO ADVERSÁRIO por 2,0 s, UM POUCO MAIOR que uma carta (170 px de
-## altura vs. 140 px da carta), contido na linha adversária (nada de ondas
-## na tela inteira): cadência variável (materializa lento -> ticks aceleram
-## -> dissolve), bob e balanço suaves, anel rúnico local girando no chão,
-## clarões de tick contidos e areia de tempo subindo do próprio relógio.
-## Contrato: finished em 2,0 s. Uso: add_child(fx); fx.setup(centro_linha_adv)
+## (1.49.96) DESACELERAR (Campeão e Talento) — animação vinda do VÍDEO do dono
+## ("DESACELERAR", 78 frames recortados do fundo branco com keying
+## profissional): o RELÓGIO ARCANO de bronze aparece SOBRE O CAMPO ADVERSÁRIO
+## por 2,6 s (vídeo integral em cadência suave), um pouco maior que uma carta
+## (170 px vs 140 px), contido na linha adversária: ponteiros voltando,
+## vórtice de tempo e explosão final de luz do próprio vídeo; polimento local
+## (anel rúnico girando no chão, clarões de tick contidos e areia de tempo).
+## Contrato: finished em 2,6 s. Uso: add_child(fx); fx.setup(centro_linha_adv)
 
 signal finished
 
-const DUR := 2.0
-const SCALE := 0.664          # 256 px * 0.664 = 170 px (> carta 140 px)
-
-## cadência: instante em que cada frame (0..19) entra
-const FRAME_AT := [
-	0.00, 0.10, 0.20, 0.30, 0.40,          # 1-5  materializa
-	0.52, 0.64, 0.76, 0.88, 1.00,          # 6-10 ponteiros voltando (ticks)
-	1.10, 1.20, 1.30, 1.40, 1.50,          # 11-15 ticks + vórtice
-	1.60, 1.70, 1.80, 1.90, 2.00,          # 16-20 dissolve em magia
-]
+const DUR := 2.6
+const N_FRAMES := 78
+const HEIGHT := 170.0        # px em campo (> 140 da carta, contido na linha)
 
 var _t := 0.0
 var _done := false
 var _started := false
 var _frame := -1
+var _scale := 1.0
 
 var _seq: Sprite2D
 var _rune: Sprite2D
 var _tick: Sprite2D
 var _sand: CPUParticles2D
 
-const FRAMES := [
-	preload("res://assets/RELOGIO_SEQ_F01.png"), preload("res://assets/RELOGIO_SEQ_F02.png"),
-	preload("res://assets/RELOGIO_SEQ_F03.png"), preload("res://assets/RELOGIO_SEQ_F04.png"),
-	preload("res://assets/RELOGIO_SEQ_F05.png"), preload("res://assets/RELOGIO_SEQ_F06.png"),
-	preload("res://assets/RELOGIO_SEQ_F07.png"), preload("res://assets/RELOGIO_SEQ_F08.png"),
-	preload("res://assets/RELOGIO_SEQ_F09.png"), preload("res://assets/RELOGIO_SEQ_F10.png"),
-	preload("res://assets/RELOGIO_SEQ_F11.png"), preload("res://assets/RELOGIO_SEQ_F12.png"),
-	preload("res://assets/RELOGIO_SEQ_F13.png"), preload("res://assets/RELOGIO_SEQ_F14.png"),
-	preload("res://assets/RELOGIO_SEQ_F15.png"), preload("res://assets/RELOGIO_SEQ_F16.png"),
-	preload("res://assets/RELOGIO_SEQ_F17.png"), preload("res://assets/RELOGIO_SEQ_F18.png"),
-	preload("res://assets/RELOGIO_SEQ_F19.png"), preload("res://assets/RELOGIO_SEQ_F20.png"),
-]
+var _frames: Array = []
+
+
+func _init() -> void:
+	for i in N_FRAMES:
+		_frames.append(load("res://assets/DESACELERAR_F%02d.png" % (i + 1)))
 
 
 func setup(at: Vector2) -> void:
 	position = at
 	z_index = 88
 	_started = true
+	var tex: Texture2D = _frames[0]
+	_scale = HEIGHT / float(tex.get_height())
 	# ---- anel rúnico local no chão da linha adversária
 	_rune = Sprite2D.new()
-	_rune.texture = Vfx.ring("desac2_rune", 130, Color(0.35, 0.90, 1.0, 0.8), 0.05)
+	_rune.texture = Vfx.ring("desac3_rune", 130, Color(0.90, 0.70, 0.30, 0.8), 0.05)
 	_rune.material = Vfx.add_mat()
 	_rune.scale = Vector2(1.0, 0.32)
-	_rune.position = Vector2(0, 74)
+	_rune.position = Vector2(0, 78)
 	_rune.modulate = Color(1, 1, 1, 0)
 	add_child(_rune)
-	# ---- a sequencia de 20 frames do relógio
+	# ---- o vídeo em frames
 	_seq = Sprite2D.new()
-	_seq.texture = FRAMES[0]
+	_seq.texture = _frames[0]
 	_seq.centered = true
-	_seq.scale = Vector2(SCALE, SCALE)
+	_seq.scale = Vector2(_scale, _scale)
 	_seq.modulate = Color(1, 1, 1, 0)
 	add_child(_seq)
-	# ---- clarão de tick CONTIDO
+	# ---- clarão de tick contido
 	_tick = Sprite2D.new()
-	_tick.texture = Vfx.radial("desac2_tick", 90, Color(0.55, 0.95, 1.0, 0.75), 0.25)
+	_tick.texture = Vfx.radial("desac3_tick", 90, Color(1.0, 0.85, 0.45, 0.7), 0.25)
 	_tick.material = Vfx.add_mat()
 	_tick.modulate = Color(1, 1, 1, 0)
 	add_child(_tick)
-	# ---- areia de tempo subindo do próprio relógio
+	# ---- areia de tempo subindo do relógio
 	_sand = CPUParticles2D.new()
-	_sand.texture = Vfx.spark(14, Color(0.55, 0.95, 1.0))
+	_sand.texture = Vfx.spark(14, Color(1.0, 0.85, 0.50))
 	_sand.material = Vfx.add_mat()
 	_sand.emitting = false
 	_sand.amount = 22
@@ -90,42 +78,36 @@ func setup(at: Vector2) -> void:
 	add_child(_sand)
 
 
-func _frame_index(t: float) -> int:
-	var idx := 0
-	for i in FRAME_AT.size():
-		if t >= FRAME_AT[i]:
-			idx = i
-	return idx
-
-
 func _process(delta: float) -> void:
 	if not _started:
 		return
 	_t += delta
 	var t := _t
-	var idx := _frame_index(t)
+	var k: float = clampf(t / DUR, 0.0, 1.0)
+	var idx := mini(N_FRAMES - 1, int(k * N_FRAMES))
 	if idx != _frame:
 		var old := _frame
 		_frame = idx
-		_seq.texture = FRAMES[idx]
-		# clarão de tick a cada troca de frame na fase de ponteiros (6..15)
-		if old >= 0 and idx >= 5 and idx <= 15:
-			_tick.modulate = Color(1, 1, 1, 0.4)
-	# flutuação suave + balanço de pêndulo contido
-	var mk: float = clampf(t / 0.35, 0.0, 1.0)
-	_seq.modulate = Color(1, 1, 1, Ease.out_cubic(mk))
+		_seq.texture = _frames[idx]
+		# clarão de tick a cada troca na fase central (ponteiros voltando)
+		if old >= 0 and idx >= 12 and idx <= 60 and idx % 4 == 0:
+			_tick.modulate = Color(1, 1, 1, 0.35)
+	# flutuação suave + entrada/saída
+	var mk: float = clampf(t / 0.3, 0.0, 1.0)
+	var outk: float = clampf((t - (DUR - 0.2)) / 0.2, 0.0, 1.0)
+	_seq.modulate = Color(1, 1, 1, Ease.out_cubic(mk) * (1.0 - 0.0 * outk))
 	_seq.position = Vector2(sin(t * 1.8) * 3.0, sin(t * 2.6) * 4.0 - 6.0)
-	_seq.rotation = 0.045 * sin(t * 2.2)
-	var sc: float = SCALE * lerpf(0.8, 1.0, Ease.out_cubic(mk))
+	_seq.rotation = 0.04 * sin(t * 2.2)
+	var sc: float = _scale * lerpf(0.82, 1.0, Ease.out_cubic(mk))
 	_seq.scale = Vector2(sc, sc)
 	# anel rúnico local
-	_rune.modulate = Color(1, 1, 1, sin(mk * PI) * 0.7 if t < 0.8 else 0.30 + 0.15 * sin(t * 5.0))
+	_rune.modulate = Color(1, 1, 1, (sin(mk * PI) * 0.7 if t < 0.9 else 0.30 + 0.15 * sin(t * 5.0)))
 	_rune.rotation -= delta * 0.7
 	# clarão de tick decai
 	if _tick.modulate.a > 0.0:
 		_tick.modulate = Color(1, 1, 1, maxf(0.0, _tick.modulate.a - delta * 2.2))
 	# areia de tempo na fase central
-	if t >= 0.45 and t < 1.65:
+	if t >= 0.4 and t < DUR - 0.5:
 		_sand.emitting = true
 	else:
 		_sand.emitting = false

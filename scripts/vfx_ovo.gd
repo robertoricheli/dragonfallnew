@@ -1,107 +1,102 @@
 class_name OvoFX
 extends Node2D
-## (1.49.95) HABILIDADE INVOCAR DRAGÃO — sequencia de 20 FRAMES pintados
-## (assets/OVO_SEQ_F01..F20.png, sprite sheet fornecido pelo dono: o ovo
-## aparece, racha, choca e vira luz) reproduzida SOMENTE sobre o slot onde o
-## FILHOTE DE DRAGÃO vai cair (nada de flash/pilar na tela inteira): cadencia
-## variavel (materializa lento -> fissuras acelerando -> choca rapido), com
-## polimento local: sombra no chao, anel runico do tamanho do slot, bob
-## suave, micro-tremor nas fissuras, clarao CONTIDO no slot, anel de choque
-## pequeno, lascas e faiscas locais. Contrato: burst ~1.32 s (invoca o
-## Filhote), finished 1.5 s. Uso: add_child(fx); fx.setup(centro_do_slot)
+## (1.49.96) HABILIDADE/CARTA TALENTO INVOCAR DRAGÃO — animação vinda do
+## VÍDEO do dono ("FILHOTE DE DRAGÃO", 54 frames recortados do fundo branco
+## com keying profissional: bg transparente, brancos internos do glow
+## preservados): o ovo aparece no SLOT do Filhote, racha e choca em 2,0 s.
+## Renderizado com altura 132 px / largura ~94 px (MENOR que o slot 100 px):
+## NUNCA encosta no campeão que usou a habilidade nem em outro cartão.
+## Um glow aditivo pulsante atrás do núcleo preenche o miolo de luz como se
+## a luz viesse de dentro; polimento local contido (sombra, anel rúnico,
+## clarão de slot, lascas e faíscas). IMMEDIATAMENTE após o fim do vídeo o
+## Filhote surge (burst em 1.97 s -> resolve_invoke_dragon; finished 2.0 s).
+## Uso: add_child(fx); fx.setup(centro_do_slot)
 
 signal burst
 signal finished
 
-const DUR := 1.5
-const BURST_AT := 1.32
-const CELL_H := 256.0
-const SCALE := 0.55           # 256 px * 0.55 = 140 px = altura da carta (slot)
-
-## cadencia profissional: instante em que cada frame (0..19) entra
-const FRAME_AT := [
-	0.00, 0.11, 0.22, 0.33, 0.44,          # 1-5  materializa (lento)
-	0.55, 0.65, 0.75, 0.85, 0.95,          # 6-10 fissuras finas
-	1.03, 1.10, 1.16, 1.22, 1.27,          # 11-15 fissuras fundas (acelera)
-	1.32, 1.37, 1.42, 1.46, 1.50,          # 16-20 choca + luz (rapido)
-]
+const DUR := 2.0
+const BURST_AT := 1.97
+const N_FRAMES := 54
+const HEIGHT := 132.0        # px em campo (< 140 da carta; largura ~94 < slot)
 
 var _t := 0.0
 var _done := false
 var _bursted := false
 var _started := false
 var _frame := -1
+var _scale := 1.0
 
 var _seq: Sprite2D
+var _core: Sprite2D          # glow atrás do núcleo (luz "de dentro")
+var _bloom: Sprite2D         # bloom aditivo suave na frente
 var _shadow: Sprite2D
 var _rune: Sprite2D
-var _glow: Sprite2D
 var _flash: Sprite2D
 var _ring: Sprite2D
 var _shards: Array = []
 var _sparkles: CPUParticles2D
+var _frames: Array = []
 
-const FRAMES := [
-	preload("res://assets/OVO_SEQ_F01.png"), preload("res://assets/OVO_SEQ_F02.png"),
-	preload("res://assets/OVO_SEQ_F03.png"), preload("res://assets/OVO_SEQ_F04.png"),
-	preload("res://assets/OVO_SEQ_F05.png"), preload("res://assets/OVO_SEQ_F06.png"),
-	preload("res://assets/OVO_SEQ_F07.png"), preload("res://assets/OVO_SEQ_F08.png"),
-	preload("res://assets/OVO_SEQ_F09.png"), preload("res://assets/OVO_SEQ_F10.png"),
-	preload("res://assets/OVO_SEQ_F11.png"), preload("res://assets/OVO_SEQ_F12.png"),
-	preload("res://assets/OVO_SEQ_F13.png"), preload("res://assets/OVO_SEQ_F14.png"),
-	preload("res://assets/OVO_SEQ_F15.png"), preload("res://assets/OVO_SEQ_F16.png"),
-	preload("res://assets/OVO_SEQ_F17.png"), preload("res://assets/OVO_SEQ_F18.png"),
-	preload("res://assets/OVO_SEQ_F19.png"), preload("res://assets/OVO_SEQ_F20.png"),
-]
+
+func _init() -> void:
+	for i in N_FRAMES:
+		_frames.append(load("res://assets/FILHOTE_DE_DRAGAO_F%02d.png" % (i + 1)))
 
 
 func setup(at: Vector2) -> void:
 	position = at
 	z_index = 86
 	_started = true
+	var tex: Texture2D = _frames[0]
+	_scale = HEIGHT / float(tex.get_height())
 	# ---- sombra contida no slot
 	_shadow = Sprite2D.new()
-	_shadow.texture = Vfx.radial("ovo2_shadow", 90, Color(0.0, 0.0, 0.0, 0.5), 0.1)
+	_shadow.texture = Vfx.radial("ovo3_shadow", 90, Color(0.0, 0.0, 0.0, 0.5), 0.1)
 	_shadow.scale = Vector2(1.0, 0.3)
-	_shadow.position = Vector2(0, 62)
+	_shadow.position = Vector2(0, 60)
 	_shadow.modulate = Color(1, 1, 1, 0)
 	add_child(_shadow)
-	# ---- anel rúnico do tamanho do slot
+	# ---- anel rúnico do slot
 	_rune = Sprite2D.new()
-	_rune.texture = Vfx.ring("ovo2_rune", 110, Color(0.35, 0.95, 0.75, 0.8), 0.05)
+	_rune.texture = Vfx.ring("ovo3_rune", 105, Color(0.35, 0.95, 0.75, 0.8), 0.05)
 	_rune.material = Vfx.add_mat()
 	_rune.scale = Vector2(1.0, 0.34)
-	_rune.position = Vector2(0, 62)
+	_rune.position = Vector2(0, 60)
 	_rune.modulate = Color(1, 1, 1, 0)
 	add_child(_rune)
-	# ---- brilho local sob o ovo
-	_glow = Sprite2D.new()
-	_glow.texture = Vfx.radial("ovo2_glow", 130, Color(1.0, 0.75, 0.30, 0.6), 0.1)
-	_glow.material = Vfx.add_mat()
-	_glow.modulate = Color(1, 1, 1, 0)
-	_glow.position = Vector2(0, 10)
-	add_child(_glow)
-	# ---- a sequencia de 20 frames
+	# ---- glow do núcleo ATRÁS do frame: a luz "vaza" de dentro do ovo
+	_core = Sprite2D.new()
+	_core.texture = Vfx.radial("ovo3_core", 110, Color(1.0, 0.85, 0.45, 0.95), 0.18)
+	_core.material = Vfx.add_mat()
+	_core.modulate = Color(1, 1, 1, 0)
+	_core.position = Vector2(0, -6)
+	add_child(_core)
+	# ---- o vídeo em frames
 	_seq = Sprite2D.new()
-	_seq.texture = FRAMES[0]
+	_seq.texture = _frames[0]
 	_seq.centered = true
-	_seq.scale = Vector2(SCALE, SCALE)
+	_seq.scale = Vector2(_scale, _scale)
 	_seq.modulate = Color(1, 1, 1, 0)
-	_seq.position = Vector2(0, -4)
 	add_child(_seq)
-	# ---- clarão CONTIDO no slot (choco)
+	# ---- bloom suave na frente
+	_bloom = Sprite2D.new()
+	_bloom.texture = Vfx.radial("ovo3_bloom", 90, Color(1.0, 0.90, 0.55, 0.5), 0.3)
+	_bloom.material = Vfx.add_mat()
+	_bloom.modulate = Color(1, 1, 1, 0)
+	_bloom.position = Vector2(0, -6)
+	add_child(_bloom)
+	# ---- clarão contido no slot (choco)
 	_flash = Sprite2D.new()
-	_flash.texture = Vfx.radial("ovo2_flash", 150, Color(1.0, 0.92, 0.60, 0.85), 0.22)
+	_flash.texture = Vfx.radial("ovo3_flash", 150, Color(1.0, 0.92, 0.60, 0.85), 0.22)
 	_flash.material = Vfx.add_mat()
 	_flash.modulate = Color(1, 1, 1, 0)
 	add_child(_flash)
-	# ---- anel de choque pequeno (choco)
 	_ring = Sprite2D.new()
-	_ring.texture = Vfx.ring("ovo2_ring", 120, Color(1.0, 0.88, 0.50, 0.85), 0.06)
+	_ring.texture = Vfx.ring("ovo3_ring", 115, Color(1.0, 0.88, 0.50, 0.85), 0.06)
 	_ring.material = Vfx.add_mat()
 	_ring.modulate = Color(1, 1, 1, 0)
 	add_child(_ring)
-	# ---- lascas locais voando no choco
 	for i in 6:
 		var sh := Sprite2D.new()
 		sh.texture = Vfx.spark(16, Color(0.95, 0.75, 0.40))
@@ -111,10 +106,9 @@ func setup(at: Vector2) -> void:
 		_shards.append({
 			"n": sh,
 			"dir": Vector2(randf_range(-1, 1), randf_range(-1.0, -0.1)).normalized(),
-			"sp": randf_range(60.0, 110.0),
+			"sp": randf_range(55.0, 100.0),
 			"sc": randf_range(0.7, 1.3),
 		})
-	# ---- faiscas douradas contidas
 	_sparkles = CPUParticles2D.new()
 	_sparkles.texture = Vfx.spark(18, Color(1.0, 0.88, 0.50))
 	_sparkles.material = Vfx.add_mat()
@@ -132,58 +126,52 @@ func setup(at: Vector2) -> void:
 	add_child(_sparkles)
 
 
-func _frame_index(t: float) -> int:
-	var idx := 0
-	for i in FRAME_AT.size():
-		if t >= FRAME_AT[i]:
-			idx = i
-	return idx
-
-
 func _process(delta: float) -> void:
 	if not _started:
 		return
 	_t += delta
 	var t := _t
-	# ================= frames da sequencia
-	var idx := _frame_index(t)
+	var k: float = clampf(t / DUR, 0.0, 1.0)
+	# ---- frames do vídeo em cadência uniforme (54 frames / 2,0 s = 27 fps)
+	var idx := mini(N_FRAMES - 1, int(k * N_FRAMES))
 	if idx != _frame:
 		_frame = idx
-		_seq.texture = FRAMES[idx]
-	# entrada suave do ovo (fade + scale-in) + bob
-	var mk: float = clampf(t / 0.30, 0.0, 1.0)
+		_seq.texture = _frames[idx]
+	# ---- entrada suave + respiração
+	var mk: float = clampf(t / 0.25, 0.0, 1.0)
 	_seq.modulate = Color(1, 1, 1, Ease.out_cubic(mk))
-	var sc: float = SCALE * lerpf(0.72, 1.0, Ease.out_cubic(mk))
-	# micro-tremor nas fissuras (frames 6..15)
-	var tremor: float = clampf((t - 0.5) / 0.6, 0.0, 1.0) * (1.0 if t < 1.25 else 0.0)
-	var jx: float = randf_range(-1, 1) * 1.6 * tremor
-	var jy: float = randf_range(-1, 1) * 1.1 * tremor
+	var sc: float = _scale * lerpf(0.8, 1.0, Ease.out_cubic(mk)) * (1.0 + 0.012 * sin(t * 9.0))
 	_seq.scale = Vector2(sc, sc)
-	_seq.position = Vector2(jx, -4.0 + jy + sin(t * 3.2) * 2.0 * mk)
-	# ================= chão: sombra + anel + brilho (tudo local)
+	_seq.position = Vector2(0, sin(t * 3.0) * 1.5)
+	# ---- glow do núcleo cresce com a rachadura (frames 18..54)
+	var ck: float = clampf((t - 0.6) / 1.2, 0.0, 1.0)
+	_core.modulate = Color(1, 1, 1, ck * (0.55 + 0.25 * sin(t * 14.0)))
+	_core.scale = Vector2.ONE * (0.5 + ck * 0.7)
+	_bloom.modulate = Color(1, 1, 1, ck * 0.35)
+	_bloom.scale = Vector2.ONE * (0.6 + ck * 0.5)
+	# ---- chão local
 	_shadow.modulate = Color(1, 1, 1, mk * 0.75)
-	_rune.modulate = Color(1, 1, 1, sin(mk * PI) * 0.7 if t < 0.75 else 0.25 + 0.35 * tremor * absf(sin(t * 12.0)))
+	_rune.modulate = Color(1, 1, 1, (sin(mk * PI) * 0.7 if t < 0.7 else 0.25 + 0.3 * ck * absf(sin(t * 12.0))))
 	_rune.rotation += delta * 0.9
-	_glow.modulate = Color(1, 1, 1, mk * (0.30 + 0.15 * sin(t * 10.0)) + 0.35 * tremor)
-	# ================= choco contido (BURST_AT)
-	if t >= BURST_AT:
-		var hk: float = clampf((t - BURST_AT) / 0.16, 0.0, 1.0)
-		var hf: float = clampf(1.0 - (t - BURST_AT - 0.16) / 0.18, 0.0, 1.0)
-		_flash.modulate = Color(1, 1, 1, hk * hf * 0.85)
-		_flash.scale = Vector2.ONE * (0.5 + hk * 0.7)
-		_ring.modulate = Color(1, 1, 1, hk * hf * 0.8)
-		_ring.scale = Vector2(0.35 + hk * 0.85, 0.14 + hk * 0.34)
+	# ---- choco contido no fim do vídeo
+	if t >= BURST_AT - 0.25:
+		var hk: float = clampf((t - (BURST_AT - 0.25)) / 0.2, 0.0, 1.0)
+		var hf: float = clampf(1.0 - (t - BURST_AT) / 0.2, 0.0, 1.0) if t > BURST_AT else 1.0
+		_flash.modulate = Color(1, 1, 1, hk * hf * 0.8)
+		_flash.scale = Vector2.ONE * (0.5 + hk * 0.6)
+		_ring.modulate = Color(1, 1, 1, hk * hf * 0.75)
+		_ring.scale = Vector2(0.35 + hk * 0.75, 0.14 + hk * 0.3)
 		if not _sparkles.emitting:
 			_sparkles.emitting = true
 			_sparkles.restart()
 		for sh in _shards:
 			var n: Sprite2D = sh["n"]
-			var st: float = t - BURST_AT
+			var st: float = t - (BURST_AT - 0.25)
 			var life := 0.4
 			if st > life:
 				n.modulate = Color(1, 1, 1, 0)
 				continue
-			n.position = Vector2(0, -4) + sh["dir"] * sh["sp"] * st + Vector2(0, 130.0 * st * st)
+			n.position = Vector2(0, -6) + sh["dir"] * sh["sp"] * st + Vector2(0, 120.0 * st * st)
 			n.scale = Vector2.ONE * sh["sc"]
 			n.modulate = Color(1, 1, 1, clampf(1.0 - st / life, 0.0, 1.0))
 	if t >= BURST_AT and not _bursted:

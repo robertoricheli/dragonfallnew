@@ -174,9 +174,8 @@ func _run_fx(path: String, args: Array, expect_min: float, expect_max: float, wa
 			_fail("%s: não emitiu burst" % path)
 		else:
 			var bd := (int(bursted[0]) - t0) / 1000.0
-			# (1.49.95) o burst do ovo novo casa com a sequencia de 20 frames
-			# (luz do choco ~1.32 s simulado / ~1.2-1.4 s reais)
-			if bd < 0.6 or bd > 1.45:
+			# (1.49.96) burst do ovo-vídeo: fim dos 2,0 s (Filhote surge em seguida)
+			if bd < 1.6 or bd > 2.1:
 				_fail("%s: burst fora da janela: %.2fs" % [path, bd])
 	await get_tree().process_frame
 	if is_instance_valid(fx):
@@ -191,19 +190,19 @@ func _t_vfx_all() -> void:
 	print("VFX Defensor (%.2fs): OK" % d1)
 	var d2 := await _run_fx("res://scripts/vfx_guardiao.gd", [a], 0.85, 1.3, false)
 	print("VFX Guardião/pilar (%.2fs): OK" % d2)
-	var d3 := await _run_fx("res://scripts/vfx_ovo.gd", [a], 1.3, 1.9, true)
+	var d3 := await _run_fx("res://scripts/vfx_ovo.gd", [a], 1.8, 2.4, true)
 	print("VFX Ovo do Dragão (%.2fs, com burst): OK" % d3)
 	var d4 := await _run_fx("res://scripts/vfx_pesadelo.gd", [a, b], 1.8, 2.4, false)
 	print("VFX Pesadelo/enxurrada (%.2fs): OK" % d4)
-	var d5 := await _run_fx("res://scripts/vfx_mordida.gd", [a, a], 1.8, 2.4, false)
-	print("VFX Mordida serpente (%.2fs): OK" % d5)
+	var d5 := await _run_fx("res://scripts/vfx_mordida.gd", [a], 1.1, 1.6, false)
+	print("VFX Mordida vídeo (%.2fs): OK" % d5)
 	var d6 := await _run_fx("res://scripts/vfx_baforada.gd", [a, b], 1.5, 2.0, false)
 	print("VFX Baforada em cone (%.2fs): OK" % d6)
 	# assets atuais das animações existem (sheets do dono desde a 1.49.95)
-	for p in ["res://assets/OVO_SEQ_F01.png", "res://assets/OVO_SEQ_F20.png", "res://assets/SERPENTE_VENENO.png", "res://assets/RELOGIO_SEQ_F01.png", "res://assets/RELOGIO_SEQ_F20.png", "res://assets/FANTASMA_PESADELO.png", "res://assets/FANTASMA_PESADELO2.png"]:
+	for p in ["res://assets/FILHOTE_DE_DRAGAO_F01.png", "res://assets/FILHOTE_DE_DRAGAO_F54.png", "res://assets/MORDIDA_VENENOSA_F01.png", "res://assets/MORDIDA_VENENOSA_F40.png", "res://assets/DESACELERAR_F01.png", "res://assets/DESACELERAR_F78.png", "res://assets/FANTASMA_PESADELO.png", "res://assets/FANTASMA_PESADELO2.png"]:
 		if not ResourceLoader.exists(p):
 			_fail("asset ausente: " + p)
-	print("Assets atuais (ovo/serpente/relógio/fantasmas): OK")
+	print("Assets atuais (vídeos recortados + fantasmas): OK")
 
 
 # ---------------------------------------------------------------- batalha

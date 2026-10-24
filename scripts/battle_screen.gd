@@ -1933,20 +1933,19 @@ func _clear_pesadelo_hero() -> void:
 
 
 func _on_fx_mordida(pi: int, src_uid: int, target_uid: int) -> void:
-	# (1.49.95) MORDIDA VENENOSA: a serpente mágica NASCE da carta do campeão
-	# que mordeu, desliza pelo campo e crava a mordida no alvo (2,0 s); ao
-	# terminar, aplica o status ENVENENADO (morte em 2 rodadas).
+	# (1.49.96) MORDIDA VENENOSA: 0,5 s APÓS a seleção do alvo, a animação do
+	# vídeo do dono (mandíbula venenosa, 120 px < carta) aparece SOBRE o
+	# campeão alvo; ao terminar, aplica o status ENVENENADO (2 rodadas).
+	await get_tree().create_timer(0.5).timeout
+	if state == null or not is_inside_tree():
+		return
 	var v: ChampionView = champ_views.get(target_uid)
-	if v == null or not is_instance_valid(v):
+	if v == null or not is_instance_valid(v) or v.dying:
 		state.resolve_mordida(target_uid)
 		return
-	var src := Vector2(FIELD_CX, PL_ROW_CY if pi == 0 else AI_ROW_CY)
-	var vs: ChampionView = champ_views.get(src_uid)
-	if vs != null and is_instance_valid(vs) and not vs.dying:
-		src = vs.global_position + vs.size / 2.0
 	var fx = load("res://scripts/vfx_mordida.gd").new()
 	fx_layer.add_child(fx)
-	fx.setup(src, v.global_position + v.size / 2.0)
+	fx.setup(v.global_position + v.size / 2.0)
 	fx.finished.connect(func() -> void:
 		if state != null and is_inside_tree():
 			state.resolve_mordida(target_uid))

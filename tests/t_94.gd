@@ -114,7 +114,7 @@ func _run_fx(scr: GDScript, args: Array, expect_burst: bool) -> bool:
 func _t_vfx_all() -> void:
 	var a := Vector2(640, 473)
 	await _run_fx(OVO, [a], true)
-	await _run_fx(MOR, [a, a], false)
+	await _run_fx(MOR, [a], false)
 	await _run_fx(DES, [a], false)
 	print("VFX Ovo(5 frames)/Mordida(sem cobra)/Relógio headless: OK")
 
@@ -183,13 +183,13 @@ func _t_battle_desacelerar() -> void:
 		await get_tree().process_frame
 	if not seen:
 		_fail("relógio DESACELERAR não apareceu no campo adversário")
-	# efeito de jogo continua aplicado + relógio some após 2 s
+	# efeito de jogo continua aplicado + relógio some após o vídeo (2,6 s)
 	if not bool(st.players[1]["skip_next_action"]):
 		_fail("desacelerar: adversário sem skip_next_action")
-	await get_tree().create_timer(2.3).timeout
+	await get_tree().create_timer(3.1).timeout
 	for ch in b.fx_layer.get_children():
 		if ch is DES:
-			_fail("relógio DESACELERAR não sumiu após 2 s")
+			_fail("relógio DESACELERAR não sumiu após o vídeo")
 			break
 	b.queue_free()
 	print("DESACELERAR: relógio 2 s no campo adversário + efeito: OK")

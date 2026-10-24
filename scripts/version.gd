@@ -4,9 +4,20 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.49.95"
+const CURRENT := "1.49.96"
 
 const NOTES := [
+	{
+		"ver": "1.49.96",
+		"data": "2026-10-24",
+		"mudancas": [
+			"INVOCAR DRAGÃO (Habilidade E Carta Talento) agora usa o VÍDEO do dono 'FILHOTE DE DRAGÃO': 54 frames recortados do fundo branco com keying profissional (bg transparente, miolo de luz preservado com glow aditivo 'de dentro'); o ovo aparece SOMENTE no slot do Filhote (94x132 px, nunca encosta no campeão que usou) por 2,0 s e IMMEDIATAMENTE após o fim do vídeo o Filhote surge em campo.",
+			"MORDIDA VENENOSA agora usa o VÍDEO do dono: 40 frames recortados profissionalmente; 0,5 s após a seleção do alvo a mandíbula venenosa (120 px, MENOR que as cartas) aparece SOBRE o campeão alvo com brilho tóxico, anel e gotas no impacto; veneno aplicado no fim (1,33 s).",
+			"DESACELERAR (Habilidade e Talento) agora usa o VÍDEO do dono: 78 frames recortados do fundo branco; o relógio arcano (170 px, um pouco maior que a carta) roda integralmente por 2,6 s sobre o campo adversário, contido na linha, com anel rúnico local, ticks e areia de tempo.",
+			"Recortes dos vídeos feitos com keying profissional: fundo branco virou alpha transparente por conectividade (brancos internos do glow preservados), bordas semi-transparentes com unblend — sem nenhum resquício de fundo branco em campo.",
+			"Assets das animações anteriores (sheets 1.49.95) removidos do projeto; teste t_95 reescrito (tamanhos/slot/delay/veneno); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.49.95",
 		"data": "2026-10-24",
@@ -103,15 +114,6 @@ const NOTES := [
 			"FORJA simplificada e sem bug: o campeão entra NORMALMENTE e 0,5 s depois o jogador ganha 1 carta com a MESMA animação de compra (saque livre, sem ação); martelo/bigorna removidos.",
 			"EDITOR DE CARTA: o box vermelho de edição agora ACOMPANHA o tamanho real do texto (nome/habilidade/descrição/selo) e arrastar as alças LATERAIS re-quebra o parágrafo na nova largura (estilo Photoshop).",
 			"EDITOR DE CARTA: a troca de FONTE agora vale para TODOS os textos da carta (nome, habilidade, selo, descrição), não só a descrição.",
-		],
-	},
-	{
-		"ver": "1.49.85",
-		"data": "2026-10-22",
-		"mudancas": [
-			"EDITOR DE CARTA: removidos os botões A+/A- — agora cada zona de texto selecionada ganha ALÇAS estilo Ctrl+T que aumentam/diminuem o TEXTO só daquela zona e só daquela carta (sem espelhar em outros textos); setas do teclado movem a zona.",
-			"EDITOR: clicar em outro elemento/zona já SELECIONA ele na hora (sem sair e voltar); setas do teclado movem o elemento selecionado também no editor de layout.",
-			"EDITOR: destaca e seleciona SOMENTE elementos da tela/página ATUAL (nada de highlights de outras telas).",
 		],
 	},
 ]
