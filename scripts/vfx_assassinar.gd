@@ -51,7 +51,7 @@ func setup(v: ChampionView) -> void:
 	_dagger = Sprite2D.new()
 	_dagger.texture = DAG_TEX
 	_dagger.centered = true
-	var ds: float = 90.0 / float(DAG_TEX.get_height())
+	var ds: float = 110.0 / float(DAG_TEX.get_height())
 	_dagger.scale = Vector2(ds, ds)
 	_dagger.modulate = Color(1, 1, 1, 0)
 	_dagger.position = _pos + Vector2(46, -86)
@@ -94,8 +94,10 @@ func _mk_part(rect: Rect2) -> Sprite2D:
 	s.region_enabled = true
 	s.region_rect = rect
 	s.centered = false
-	s.position = _pos - _size / 2.0 + rect.position
-	s.pivot_offset = rect.size / 2.0
+	# (1.50.0) Sprite2D não tem pivot_offset: o origin vira o CENTRO da região
+	# via offset negativo — rotação das metades/pedaços ao redor do próprio centro.
+	s.offset = -rect.size / 2.0
+	s.position = _pos - _size / 2.0 + rect.position + rect.size / 2.0
 	s.modulate = Color(1, 1, 1, 0)
 	add_child(s)
 	return s

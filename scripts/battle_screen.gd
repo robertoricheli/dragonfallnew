@@ -1208,7 +1208,6 @@ func _on_actions_changed(pi: int) -> void:
 
 
 func _on_turn_started(pi: int) -> void:
-	Sfx.play("turn", 640.0, 0.45)
 	_cancel_drags()
 	# (1.49.93) PESADELO sobre o herói: o efeito (e os fantasmas sobre a
 	# moldura) some quando TERMINA o turno do jogador afetado.
@@ -1761,7 +1760,6 @@ func _furia_sequence(uid: int) -> void:
 	var v: ChampionView = champ_views.get(uid)
 	if v == null or not is_instance_valid(v) or v.dying:
 		return
-	Sfx.play("raio", 640.0, 0.85)
 	var raio := RaioFX.new()
 	fx_layer.add_child(raio)
 	raio.setup(v.global_position + v.size / 2.0, 1.5)

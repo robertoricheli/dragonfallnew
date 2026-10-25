@@ -51,13 +51,13 @@ func _t_sfx26() -> void:
 	if sfx == null:
 		_fail("autoload Sfx ausente")
 		return
-	if (sfx.KEYS as Dictionary).size() != 26:
-		_fail("Sfx: %d chaves (esperado 26)" % (sfx.KEYS as Dictionary).size())
+	if (sfx.KEYS as Dictionary).size() != 25:
+		_fail("Sfx: %d chaves (esperado 25)" % (sfx.KEYS as Dictionary).size())
 	for k in sfx.KEYS:
 		if sfx._streams.get(k) == null:
 			_fail("Sfx: stream ausente: %s" % k)
 		sfx.play(k, 640.0, 0.4)
-	print("SFX v2: 26 sons carregados e play() seguro: OK")
+	print("SFX v2: 25 sons carregados e play() seguro: OK")
 
 
 func _t_paridade_invocacao() -> void:

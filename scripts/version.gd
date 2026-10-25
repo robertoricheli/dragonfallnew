@@ -4,9 +4,21 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.49.99"
+const CURRENT := "1.50.0"
 
 const NOTES := [
+	{
+		"ver": "1.50.0",
+		"data": "2026-10-25",
+		"mudancas": [
+			"CRASH da animação ASSASSINAR corrigido: Sprite2D não tem pivot_offset — as metades/pedaços agora giram ao redor do próprio centro via offset (erro de runtime eliminado).",
+			"ADAGA repintada no estilo Hearthstone (semi-3D pintado, proporções estilizadas — nada fotorealista) e recortada do fundo preto com keying profissional (sem caixa preta na cena).",
+			"SOM DE TURNO REMOVIDO: nada toca ao passar a vez nem no início da partida (regras do dono); a chave 'turn' saiu da central Sfx.",
+			"SOM DE INVOCAÇÃO COM MAIS IMPACTO: baque profundo de pedra (sub 68->26 Hz com drive), corpo de impacto, 'tock' de madeira, detritos e poeira assentando, com reverberação.",
+			"ASSETS NÃO USADOS EXCLUÍDOS (regra permanente): ICO_CORROMPIDO/ICO_CRISTAL/ICO_EXAUSTO.svg, VFX_FORTALECER.png, VFX_VENENO.png, protecao.gdshader e turn.wav.",
+			"Testes t_90–t_97 + smoke OK (t_97 valida a adaga ponta-a-ponta sem erros); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.49.99",
 		"data": "2026-10-25",
@@ -96,16 +108,6 @@ const NOTES := [
 			"BAFORADA VENENOSA (Talento) agora abre MIRA VERDE-VENENO (o dono escolhe o Campeão adversário, como diz o texto da carta; a IA escolhe após 1,6 s) e ganhou a animação do SOPRO DO DRAGÃO VERDE: cometa de chamas verdes com núcleo incandescente, fumaça escura, brasas pontilhadas e feixe na cauda, voando da carta Talento até o alvo.",
 			"O ENVENENADO da Baforada só é aplicado NO FIM do sopro e aparece em campo SOMENTE como ícone no canto superior direito; SEM HONRA segue só com o ícone de caveira no canto e a morte especial preservada.",
 			"Novo teste de regressão t_92 (ícone do CONGELADO sem cristal + mira/veneno da Baforada + VFX do sopro + integração na Tela de Combate); pack web (index.pck) reexportado — no navegador, Ctrl+F5.",
-		],
-	},
-	{
-		"ver": "1.49.91",
-		"data": "2026-10-23",
-		"mudancas": [
-			"STATUS EM CAMPO SEM ANIMAÇÃO PERSISTENTE: PROTEÇÃO (redoma), SEM HONRA (caveira pulsante), ENVENENADO (símbolo + bolhas) e FÚRIA (aura vermelha com olhos) viraram SOMENTE um ÍCONE PEQUENO no CANTO SUPERIOR DIREITO da carta; com vários status, os ícones empilham de CIMA para BAIXO na ORDEM DE AQUISIÇÃO; os detalhes de cada status continuam no zoom da carta.",
-			"SEM HONRA: após a destruição de um campeão com o status, os aliados só se REORGANIZAM no campo 0,5 s APÓS o FIM da animação de morte especial (explosão roxa + caveira) — antes, deslizavam durante a explosão.",
-			"FÚRIA e GRITO DE GUERRA mantêm o RAIO VERMELHO caindo sobre o campeão e a MORDIDA VENENOSA mantém a animação da mordida — somente as camadas PERSISTENTES (aura/olhos, bolhas, redoma, caveira) saíram do jogo.",
-			"Novo teste de regressão t_91 (pilha de ícones + ordem de aquisição + reorganização tardia do SEM HONRA); pack web (index.pck) reexportado — no navegador, Ctrl+F5.",
 		],
 	},
 	{
