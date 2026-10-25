@@ -199,7 +199,7 @@ func _t_vfx_all() -> void:
 	var d6 := await _run_fx("res://scripts/vfx_baforada.gd", [a, b], 1.5, 2.0, false)
 	print("VFX Baforada em cone (%.2fs): OK" % d6)
 	# assets atuais das animações existem (sheets do dono desde a 1.49.95)
-	for p in ["res://assets/FILHOTE_DE_DRAGAO_F01.png", "res://assets/FILHOTE_DE_DRAGAO_F54.png", "res://assets/MORDIDA_VENENOSA_F01.png", "res://assets/MORDIDA_VENENOSA_F40.png", "res://assets/DESACELERAR_F01.png", "res://assets/DESACELERAR_F60.png", "res://assets/FANTASMA_PESADELO.png", "res://assets/FANTASMA_PESADELO2.png"]:
+	for p in ["res://assets/OVO_ARTE_P1.png", "res://assets/OVO_ARTE_P4.png", "res://assets/ADAGA_ARTE.png", "res://assets/MORDIDA_VENENOSA_F01.png", "res://assets/MORDIDA_VENENOSA_F40.png", "res://assets/DESACELERAR_F01.png", "res://assets/DESACELERAR_F60.png", "res://assets/FANTASMA_PESADELO.png", "res://assets/FANTASMA_PESADELO2.png"]:
 		if not ResourceLoader.exists(p):
 			_fail("asset ausente: " + p)
 	print("Assets atuais (vídeos recortados + fantasmas): OK")

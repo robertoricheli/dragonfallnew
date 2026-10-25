@@ -50,10 +50,8 @@ func _t_ovo_slot() -> void:
 		flag["burst"] = true
 		flag["tb"] = (Time.get_ticks_msec() - t0) / 1000.0)
 	fx.setup(Vector2(640, 473))
-	if fx._frames.size() != 71:
-		_fail("ovo: %d frames (esperado 71)" % fx._frames.size())
-	var tw: float = fx._frames[0].get_width() * fx._scale
-	var th: float = fx._frames[0].get_height() * fx._scale
+	var tw: float = fx.TEX_P1.get_width() * fx._scale
+	var th: float = fx.TEX_P1.get_height() * fx._scale
 	if th < 90.0 or th > 140.0:
 		_fail("ovo: altura %.0f px (esperado 90..140)" % th)
 	if tw > 116.0:
@@ -66,9 +64,9 @@ func _t_ovo_slot() -> void:
 		_fail("ovo: não terminou")
 	if not flag["burst"]:
 		_fail("ovo: não emitiu burst")
-	elif float(flag["tb"]) < 1.5 or float(flag["tb"]) > 2.1:
+	elif float(flag["tb"]) < 1.6 or float(flag["tb"]) > 2.1:
 		_fail("ovo: burst em %.2fs (esperado ~1.97)" % float(flag["tb"]))
-	print("OVO-vídeo 71 frames no slot (%.0fx%.0f px), burst no fim: OK" % [tw, th])
+	print("OVO procedural no slot (%.0fx%.0f px), burst no fim: OK" % [tw, th])
 
 
 func _t_mordida_tamanho() -> void:

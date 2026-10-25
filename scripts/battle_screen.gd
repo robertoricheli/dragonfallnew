@@ -869,10 +869,9 @@ func _on_champion_summoned(pi: int, card: Dictionary) -> void:
 	v.position = _slot_for(pi, maxi(0, cidx), maxi(1, cnt))
 	v.visible = false
 	_refresh_counts()
-	if pi == 1:
-		_ai_summon_flight(v, card, v.position)
-	else:
-		_reveal_summon(v, pi)
+	# (1.49.99) PARIDADE: IA e jogador invocam com o MESMO processo
+	# (queda + impacto pesado); sem voo especial da mão da IA.
+	_reveal_summon(v, pi)
 
 
 func _reveal_summon(v: ChampionView, pi: int) -> void:
@@ -1056,19 +1055,8 @@ func _on_talent_played(pi: int, card: Dictionary) -> void:
 	v.position = _slot_for(pi, clampi(slot, 0, n - 1), n)
 	v.visible = false
 	_layout_field(pi)
-	if pi == 1:
-		var temp := CardView.new()
-		temp.setup(card, false)  # mostra a FRENTE durante o voo
-		temp.position = Vector2(FIELD_CX - CardView.CARD_W / 2.0, ai_hand_y)
-		temp.z_index = 120
-		temp.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		hand_layer.add_child(temp)
-		var to := v.position + Vector2((CHAMP_W - CardView.CARD_W) / 2.0, (CHAMP_H - CardView.CARD_H) / 2.0)
-		await _fly_card(temp, to - Vector2(0, DROP_H), 0.9, 40.0)
-		temp.queue_free()
-		_reveal_extra(v, pi)
-	else:
-		_reveal_extra(v, pi)
+	# (1.49.99) PARIDADE: Talento/Reação entra com o MESMO processo nos 2 lados.
+	_reveal_extra(v, pi)
 	await get_tree().create_timer(2.0).timeout
 	# enquanto esta carta estiver sendo a ORIGEM de uma mira (Bola de Fogo),
 	# ela permanece no campo ate o jogador escolher o alvo
@@ -1136,7 +1124,8 @@ func _pre_shift(pi: int, insert_idx: int) -> void:
 
 
 func _on_champion_destroyed(pi: int, card: Dictionary, reason: String, gave_vp: bool) -> void:
-	Sfx.play("destroy", 640.0, 0.9)
+	if reason != "assassinar":
+		Sfx.play("destroy", 640.0, 0.9)
 	var uid := int(card["uid"])
 	if String(_death_style.get(uid, "")) == "semhonra" and champ_views.has(uid):
 		# (1.49.80) SEM HONRA: NADA de explodir no meio da animação alheia.
@@ -1156,6 +1145,15 @@ func _on_champion_destroyed(pi: int, card: Dictionary, reason: String, gave_vp: 
 	if champ_views.has(uid):
 		var v: ChampionView = champ_views[uid]
 		champ_views.erase(uid)
+		if reason == "assassinar":
+			# (1.49.99) ASSASSINAR: morte ESPECIAL — adaga corta a carta ao
+			# meio e ela se desfaz em pedaços (2,0 s entre corte e destruição).
+			_assassinar_death(v)
+			_last_destroy_ms = Time.get_ticks_msec()
+			if gave_vp:
+				_spawn_toast("+PV para %s!" % state.players[1 - pi]["name"])
+			_refresh_counts()
+			return
 		if _death_style.has(uid):
 			# (1.49.76) RECOMPENSA DUPLA: a animação de destruição padrão é
 			# SUBSTITUÍDA pela especial de 2 s.
@@ -1788,7 +1786,6 @@ func _grito_sequence(pi: int, self_uid: int) -> void:
 		var v: ChampionView = champ_views.get(uid)
 		if v == null or not is_instance_valid(v) or v.dying:
 			continue
-		Sfx.play("raio", 640.0, 0.85)
 		var raio := RaioFX.new()
 		fx_layer.add_child(raio)
 		raio.setup(v.global_position + v.size / 2.0, 1.0)
@@ -1800,7 +1797,6 @@ func _grito_sequence(pi: int, self_uid: int) -> void:
 
 
 func _defensor_sequence(uid: int) -> void:
-	Sfx.play("defensor", 640.0, 0.9)
 	# (1.49.93) DEFENSOR: 0,5 s após o pouso, a animação defensiva épica (1,5 s)
 	# cobre o Campeão; o ícone de PROTEÇÃO aparece 0,5 s após o INÍCIO dela.
 	await get_tree().create_timer(0.5).timeout
@@ -1823,7 +1819,6 @@ func _defensor_sequence(uid: int) -> void:
 
 
 func _guardiao_sequence(pi: int, self_uid: int) -> void:
-	Sfx.play("guardiao", 640.0, 0.9)
 	# (1.49.93) GUARDIÃO: 0,5 s após o pouso, um PILAR DE LUZ DO CÉU (1,0 s) cai
 	# sobre cada campeão aliado, UM POR UM; 0,5 s após o pilar de cada um, o
 	# ícone de PROTEÇÃO aparece sobre aquele aliado.
@@ -1901,14 +1896,12 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 		return
 	var foe: int = 1 - pi
 	var dst := Vector2(FIELD_CX, AI_ROW_CY if foe == 1 else PL_ROW_CY)
-	var src: Vector2
-	if pi == 1:
-		src = Vector2(FIELD_CX, (AI_ROW_CY + PL_ROW_CY) / 2.0)
-	else:
-		src = Vector2(FIELD_CX, PL_ROW_CY)
-		var v: ChampionView = champ_views.get(uid)
-		if v != null and is_instance_valid(v) and not v.dying:
-			src = v.global_position + v.size / 2.0
+	# (1.49.99) PARIDADE: o cone nasce SEMPRE do campeão que invocou (IA ou
+	# jogador) e voa sobre o campo adversário — mesmos processos nos 2 lados.
+	var src := Vector2(FIELD_CX, PL_ROW_CY if pi == 0 else AI_ROW_CY)
+	var v: ChampionView = champ_views.get(uid)
+	if v != null and is_instance_valid(v) and not v.dying:
+		src = v.global_position + v.size / 2.0
 	var fx = load("res://scripts/vfx_pesadelo.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(src, dst)
@@ -1956,6 +1949,15 @@ func _clear_pesadelo_hero() -> void:
 	_pesadelo_hero_node = null
 	_pesadelo_hero_pi = -1
 	_pesadelo_turn_seen = false
+
+
+func _assassinar_death(v: ChampionView) -> void:
+	# (1.49.99) orquestra a morte especial da ADAGA sobre a view (0,5 s de
+	# mira + corte + 2,0 s de metades/pedaços); a view é liberada pelo fx.
+	v.dying = true
+	var fx = load("res://scripts/vfx_assassinar.gd").new()
+	fx_layer.add_child(fx)
+	fx.setup(v)
 
 
 func _on_fx_mordida(pi: int, src_uid: int, target_uid: int) -> void:

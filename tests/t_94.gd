@@ -129,8 +129,8 @@ func _t_battle_pesadelo_ia() -> void:
 	st._resolve_on_enter_named(1, ak, "pesadelo")
 	b._on_champion_summoned(1, ak)
 	b._layout_field(1)
-	# cone nasce ~1,7 s (voo da IA + 0,5 s); confere em 2,4 s
-	await get_tree().create_timer(2.4).timeout
+	# (1.49.99) paridade: sem voo da IA — cone nasce ~0,6 s; confere em 1,2 s
+	await get_tree().create_timer(1.2).timeout
 	var cones := []
 	for ch in b.fx_layer.get_children():
 		if ch is PES:
@@ -138,13 +138,15 @@ func _t_battle_pesadelo_ia() -> void:
 	if cones.size() != 1:
 		_fail("pesadelo IA: %d cones (esperado 1)" % cones.size())
 	elif cones.size() == 1:
+		# (1.49.99) PARIDADE: o cone nasce do campeão que invocou (IA ou não)
 		var fx = cones[0]
-		var mid_y: float = (b.AI_ROW_CY + b.PL_ROW_CY) / 2.0
-		if absf(fx._from.x - b.FIELD_CX) > 1.0 or absf(fx._from.y - mid_y) > 1.0:
-			_fail("pesadelo IA: cone nasce em (%.0f,%.0f), não no meio da tela" % [fx._from.x, fx._from.y])
+		var vc: ChampionView = b.champ_views.get(int(ak["uid"]))
+		var want: Vector2 = vc.global_position + vc.size / 2.0
+		if fx._from.distance_to(want) > 2.0:
+			_fail("pesadelo IA: cone não nasce do caster (%s vs %s)" % [str(fx._from), str(want)])
 	# guarda anti-duplicata: segundo disparo no mesmo uid NÃO cria outro cone
 	b._pesadelo_sequence(1, int(ak["uid"]))
-	await get_tree().create_timer(0.4).timeout
+	await get_tree().create_timer(0.3).timeout
 	var cones2 := 0
 	for ch in b.fx_layer.get_children():
 		if ch is PES:
@@ -156,7 +158,7 @@ func _t_battle_pesadelo_ia() -> void:
 	if b._pesadelo_hero_pi != 0:
 		_fail("pesadelo IA: loop do herói não ligou no jogador afetado")
 	b.queue_free()
-	print("PESADELO da IA: 1 cone no meio da tela + anti-duplicata: OK")
+	print("PESADELO da IA: 1 cone do caster (paridade) + anti-duplicata: OK")
 
 
 func _t_battle_desacelerar() -> void:

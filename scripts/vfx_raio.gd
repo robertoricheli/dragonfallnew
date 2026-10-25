@@ -22,6 +22,7 @@ var _embers: Array = []
 var _charge: Sprite2D
 var _seed: int = 0
 var _impact_at := 0.30
+var _hit_played := false
 var _done := false
 
 const BOLT_W := 110
@@ -216,6 +217,9 @@ func _process(delta: float) -> void:
 		_bolt.modulate = Color(1, 1, 1, clampf(fall * 1.6, 0.0, 1.0))
 		_bolt.scale = Vector2(1.0, lerpf(1.25, 1.0, fall))
 	else:
+		if not _hit_played:
+			_hit_played = true
+			Sfx.play("raio", position.x, 1.0)
 		var it: float = t - _impact_at
 		_bolt.modulate = Color(1, 1, 1, clampf(1.0 - it / 0.28, 0.0, 1.0) * randf_range(0.7, 1.0))
 		_charge.modulate = Color(1, 1, 1, 0)

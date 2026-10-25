@@ -17,6 +17,7 @@ const TOP_Y := -450.0
 var _t := 0.0
 var _done := false
 var _started := false
+var _firm_played := false
 
 var _beam: Sprite2D
 var _glow: Sprite2D
@@ -139,6 +140,9 @@ func _process(delta: float) -> void:
 			_dust.emitting = true
 	# clarão curto quando o pilar firma (0,30)
 	if t > 0.30:
+		if not _firm_played:
+			_firm_played = true
+			Sfx.play("guardiao", position.x, 0.8)
 		var fk2: float = clampf(1.0 - (t - 0.30) / 0.22, 0.0, 1.0)
 		_flash.modulate = Color(1, 1, 1, fk2 * fk2 * 0.8)
 		_flash.scale = Vector2.ONE * (0.55 + (1.0 - fk2) * 0.7)

@@ -15,6 +15,7 @@ const DUR := 1.5
 var _t := 0.0
 var _done := false
 var _started := false
+var _seal_played := false
 
 var _rune: Sprite2D
 var _rune2: Sprite2D
@@ -177,6 +178,9 @@ func _process(delta: float) -> void:
 		_rim.scale = Vector2.ONE * lerpf(0.25, 0.98, dk_e) * Vector2(1.0, 1.12)
 	# ---------------- clarão + anel + brasão no selamento (0,5)
 	if t > 0.5:
+		if not _seal_played:
+			_seal_played = true
+			Sfx.play("defensor", position.x, 1.0)
 		var it: float = t - 0.5
 		var fk: float = clampf(1.0 - it / 0.3, 0.0, 1.0)
 		_flash.modulate = Color(1, 1, 1, fk * fk * 0.95)

@@ -4,9 +4,20 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.49.98"
+const CURRENT := "1.49.99"
 
 const NOTES := [
+	{
+		"ver": "1.49.99",
+		"data": "2026-10-25",
+		"mudancas": [
+			"ÁUDIO v2 (projeto aprovado): os 26 sons das animações foram REFEITOS com síntese profissional em camadas (grãos de ruído varrido, sub-graves com pitch-drop, parciais inarmônicos metálicos, crackles, caudas de reverberação) — nada de sons 8-bit; cada som toca DURANTE a animação (raio no impacto do raio, defensor no selamento do domo, guardião no pilar firmando, mordida no bote, ovo no choco...) e casa com a habilidade (whoosh+explosão na Bola de Fogo, cristais no Congelar, ticks no Relógio, sussurros no Pesadelo...).",
+			"PARIDADE IA/jogador (regra do dono): invocação de Campeões e entrada de Talento/Reação agora usam o MESMO processo nos dois lados (queda + impacto pesado); o cone do PESADELO volta a nascer do campeão que invocou TAMBÉM para a IA (guarda anti-duplicata mantida).",
+			"INVOCAR DRAGÃO REFEITA DO ZERO (mesmo roteiro, identidade BOLA DE FOGO/MORDIDA): 4 estados pintados semi-3D novos (inteiro -> fissuras -> fissuras fundas -> choco) com CROSSFADE, materialização com espiral de faíscas, tremor crescente com squash, poeira, anel rúnico, feixes, lascas orbitando, explosão com pilar de energia e faíscas — contida no slot (<=112x132 px), 2,0 s, Filhote imediato no burst.",
+			"NOVA animação ASSASSINAR (morte especial): alvos com Poder 1 já destacados em VERMELHO pela mira do motor; 0,5 s após a escolha, uma ADAGA espectral pintada materializa, golpeia em diagonal com rastro de corte, a carta é CORTADA AO MEIO (metades com a textura real caem girando) e se DESFAZ em 9 pedaços + fumaça — 2,0 s entre o corte e a destruição; sons de marca/corte/divisão/estilhaços.",
+			"Testes t_90–t_97 + smoke OK (t_97: paridade, assassinar e 26 SFX); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.49.98",
 		"data": "2026-10-25",
@@ -95,15 +106,6 @@ const NOTES := [
 			"SEM HONRA: após a destruição de um campeão com o status, os aliados só se REORGANIZAM no campo 0,5 s APÓS o FIM da animação de morte especial (explosão roxa + caveira) — antes, deslizavam durante a explosão.",
 			"FÚRIA e GRITO DE GUERRA mantêm o RAIO VERMELHO caindo sobre o campeão e a MORDIDA VENENOSA mantém a animação da mordida — somente as camadas PERSISTENTES (aura/olhos, bolhas, redoma, caveira) saíram do jogo.",
 			"Novo teste de regressão t_91 (pilha de ícones + ordem de aquisição + reorganização tardia do SEM HONRA); pack web (index.pck) reexportado — no navegador, Ctrl+F5.",
-		],
-	},
-	{
-		"ver": "1.49.90",
-		"data": "2026-10-23",
-		"mudancas": [
-			"O JOGO VOLTA A ABRIR: corrigidos os erros de compilação da 1.49.89 — a chamada _apply_mordida passava os argumentos trocados e o blend aditivo 'CanvasItem.BLEND_MODE_ADD' NÃO existe no Godot 4.7 (os VFX de Mordida, Raio/Fúria e as camadas de status agora usam o material aditivo oficial do projeto, Vfx.add_mat()).",
-			"MORDIDA VENENOSA, FÚRIA e GRITO DE GUERRA revalidados headless: o status só entra DEPOIS do fim da animação (porta fx) e na hora em simulações; os VFX de mordida e raio tocam inteiros e emitem 'finished' sem nenhum erro de script.",
-			"Pack web (index.pck) REEXPORTADO com as correções — no navegador, atualize com Ctrl+F5.",
 		],
 	},
 	{
