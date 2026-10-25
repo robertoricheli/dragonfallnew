@@ -1,18 +1,18 @@
 class_name DesacelerarFX
 extends Node2D
-## (1.49.96) DESACELERAR (Campeão e Talento) — animação vinda do VÍDEO do dono
-## ("DESACELERAR", 78 frames recortados do fundo branco com keying
-## profissional): o RELÓGIO ARCANO de bronze aparece SOBRE O CAMPO ADVERSÁRIO
-## por 2,6 s (vídeo integral em cadência suave), um pouco maior que uma carta
-## (170 px vs 140 px), contido na linha adversária: ponteiros voltando,
-## vórtice de tempo e explosão final de luz do próprio vídeo; polimento local
-## (anel rúnico girando no chão, clarões de tick contidos e areia de tempo).
+## (1.49.97) DESACELERAR (Campeão e Talento) — animação vinda do VÍDEO do dono
+## ("DESACELERAR", 60 frames recortados do fundo PRETO com keying profissional
+## por conectividade: NADA do fundo preto aparece): o RELÓIO ARCANO de bronze
+## com engrenagens e vórtice aparece SOBRE O CAMPO ADVERSÁRIO por 2,6 s
+## (vídeo integral em cadência suave), um pouco maior que uma carta (170 px
+## vs 140 px), contido na linha adversária; polimento local (anel rúnico
+## girando no chão, clarões de tick contidos e areia de tempo).
 ## Contrato: finished em 2,6 s. Uso: add_child(fx); fx.setup(centro_linha_adv)
 
 signal finished
 
 const DUR := 2.6
-const N_FRAMES := 78
+const N_FRAMES := 60
 const HEIGHT := 170.0        # px em campo (> 140 da carta, contido na linha)
 
 var _t := 0.0

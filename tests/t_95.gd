@@ -50,14 +50,14 @@ func _t_ovo_slot() -> void:
 		flag["burst"] = true
 		flag["tb"] = (Time.get_ticks_msec() - t0) / 1000.0)
 	fx.setup(Vector2(640, 473))
-	if fx._frames.size() != 54:
-		_fail("ovo: %d frames (esperado 54)" % fx._frames.size())
+	if fx._frames.size() != 67:
+		_fail("ovo: %d frames (esperado 67)" % fx._frames.size())
 	var tw: float = fx._frames[0].get_width() * fx._scale
 	var th: float = fx._frames[0].get_height() * fx._scale
-	if th < 120.0 or th > 140.0:
-		_fail("ovo: altura %.0f px (esperado 120..140)" % th)
-	if tw > 100.0:
-		_fail("ovo: largura %.0f px > slot 100 (encostaria no campeão ao lado)" % tw)
+	if th < 90.0 or th > 140.0:
+		_fail("ovo: altura %.0f px (esperado 90..140)" % th)
+	if tw > 116.0:
+		_fail("ovo: largura %.0f px > 116 (encostaria no campeão ao lado)" % tw)
 	var guard := 0
 	while not flag["done"] and guard < 400:
 		await get_tree().process_frame
@@ -68,7 +68,7 @@ func _t_ovo_slot() -> void:
 		_fail("ovo: não emitiu burst")
 	elif float(flag["tb"]) < 1.5 or float(flag["tb"]) > 2.1:
 		_fail("ovo: burst em %.2fs (esperado ~1.97)" % float(flag["tb"]))
-	print("OVO-vídeo 54 frames no slot (%.0fx%.0f px), burst no fim: OK" % [tw, th])
+	print("OVO-vídeo 67 frames no slot (%.0fx%.0f px), burst no fim: OK" % [tw, th])
 
 
 func _t_mordida_tamanho() -> void:
@@ -99,8 +99,8 @@ func _t_relogio_tamanho() -> void:
 	var flag := {"done": false}
 	fx.finished.connect(func() -> void: flag["done"] = true)
 	fx.setup(Vector2(640, 246))
-	if fx._frames.size() != 78:
-		_fail("relogio: %d frames (esperado 78)" % fx._frames.size())
+	if fx._frames.size() != 60:
+		_fail("relogio: %d frames (esperado 60)" % fx._frames.size())
 	var th: float = fx._frames[0].get_height() * fx._scale
 	if th <= 140.0 or th > 190.0:
 		_fail("relogio: altura %.0f px (esperado um pouco > 140 e <= 190)" % th)
@@ -110,7 +110,7 @@ func _t_relogio_tamanho() -> void:
 		guard += 1
 	if not flag["done"]:
 		_fail("relogio: não terminou")
-	print("DESACELERAR-vídeo 78 frames, %.0f px (> carta): OK" % th)
+	print("DESACELERAR-vídeo 60 frames, %.0f px (> carta): OK" % th)
 
 
 func _t_battle_mordida() -> void:

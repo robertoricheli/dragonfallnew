@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://3bclya72744i"
-path="res://.godot/imported/DESACELERAR_F75.png-69c866b6d0f0114d272605b303d9ac3e.ctex"
+uid="uid://je5swxy7t6av"
+path="res://.godot/imported/FILHOTE_DE_DRAGAO_F55.png-a0a13796e68381df124d53d2fe50eac1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/DESACELERAR_F75.png"
-dest_files=["res://.godot/imported/DESACELERAR_F75.png-69c866b6d0f0114d272605b303d9ac3e.ctex"]
+source_file="res://assets/FILHOTE_DE_DRAGAO_F55.png"
+dest_files=["res://.godot/imported/FILHOTE_DE_DRAGAO_F55.png-a0a13796e68381df124d53d2fe50eac1.ctex"]
 
 [params]
 

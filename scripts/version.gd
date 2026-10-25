@@ -4,9 +4,20 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.49.96"
+const CURRENT := "1.49.97"
 
 const NOTES := [
+	{
+		"ver": "1.49.97",
+		"data": "2026-10-25",
+		"mudancas": [
+			"INVOCAR DRAGÃO (Habilidade E Carta Talento) com o NOVO vídeo do dono ('OVO DE DRAGÃO', fundo PRETO): 67 frames recortados com keying profissional por conectividade — NADA do fundo preto aparece; pretos internos da arte preservados; bordas semi-transparentes com unblend; vinheta suave dissolve as lascas laterais.",
+			"O ovo aparece SOMENTE no slot do Filhote (<= 112 px de largura, <= 140 px de altura): NUNCA em cima do campeão que usou a habilidade, nem encostando nele; duração 2,0 s e IMMEDIATAMENTE após o fim do vídeo o Filhote surge em campo.",
+			"DESACELERAR (Habilidade e Talento) com o NOVO vídeo do dono (fundo PRETO): 60 frames do relógio arcano com engrenagens e vórtice de tempo, recortados sem nenhum resquício de fundo; 2,6 s sobre o campo adversário, um pouco maior que uma carta, contido na linha.",
+			"MORDIDA VENENOSA mantida como na 1.49.96 (vídeo recortado do fundo branco, 0,5 s após o alvo, menor que a carta).",
+			"Testes t_90–t_95 + smoke OK (t_95 valida 67/60 frames, largura do ovo <= 116 px e relógio > carta); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.49.96",
 		"data": "2026-10-24",
@@ -104,16 +115,6 @@ const NOTES := [
 			"EDITOR DE CARTA: dois cliques num texto abrem o editor de texto SOMENTE daquela zona (nome, habilidade, descrição ou selo); selo Campeão/Talento/Reação também redimensionável (alças com afastamento mínimo).",
 			"EDITOR DE CARTA: ZOOM com scroll do mouse (1x–4x, estilo visualizador de imagem); clicar fora NÃO fecha mais — só ESC ou o novo botão VOLTAR; SALVAR mostra 'ATUALIZAÇÕES SALVAS!' e permanece no editor.",
 			"NOVA ANIMAÇÃO CONGELAR / ZERO ABSOLUTO: mira AZUL nos inimigos aptos (como a Bola de Fogo); ao confirmar, coluna de luz + anel de gelo no chão + burst de cristais; o congelado fica azulado com cristal de gelo no centro; Zero Absoluto congela 2 rodadas (destrói se já congelado); ícone de floco no zoom.",
-		],
-	},
-	{
-		"ver": "1.49.86",
-		"data": "2026-10-22",
-		"mudancas": [
-			"MÃO corrigida: todas as cartas com o MESMO tamanho (spawn por fade, sem escala residual) e mão mais junta/centrada na tela com arco menor — 8 cartas não encostam mais nos hubs dos heróis.",
-			"FORJA simplificada e sem bug: o campeão entra NORMALMENTE e 0,5 s depois o jogador ganha 1 carta com a MESMA animação de compra (saque livre, sem ação); martelo/bigorna removidos.",
-			"EDITOR DE CARTA: o box vermelho de edição agora ACOMPANHA o tamanho real do texto (nome/habilidade/descrição/selo) e arrastar as alças LATERAIS re-quebra o parágrafo na nova largura (estilo Photoshop).",
-			"EDITOR DE CARTA: a troca de FONTE agora vale para TODOS os textos da carta (nome, habilidade, selo, descrição), não só a descrição.",
 		],
 	},
 ]

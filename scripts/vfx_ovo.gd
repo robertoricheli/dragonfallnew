@@ -1,10 +1,11 @@
 class_name OvoFX
 extends Node2D
-## (1.49.96) HABILIDADE/CARTA TALENTO INVOCAR DRAGÃO — animação vinda do
-## VÍDEO do dono ("FILHOTE DE DRAGÃO", 54 frames recortados do fundo branco
-## com keying profissional: bg transparente, brancos internos do glow
-## preservados): o ovo aparece no SLOT do Filhote, racha e choca em 2,0 s.
-## Renderizado com altura 132 px / largura ~94 px (MENOR que o slot 100 px):
+## (1.49.97) HABILIDADE/CARTA TALENTO INVOCAR DRAGÃO — animação vinda do
+## VÍDEO do dono ("OVO DE DRAGÃO", 67 frames recortados do fundo PRETO com
+## keying profissional por conectividade: NADA do fundo preto aparece;
+## pretos internos da arte preservados; bordas semi-transparentes com
+## unblend; vinheta suave dissolve as lascas laterais): o ovo aparece
+## SOMENTE no SLOT do Filhote (<= 112 px de largura, <= 140 px de altura):
 ## NUNCA encosta no campeão que usou a habilidade nem em outro cartão.
 ## Um glow aditivo pulsante atrás do núcleo preenche o miolo de luz como se
 ## a luz viesse de dentro; polimento local contido (sombra, anel rúnico,
@@ -17,8 +18,9 @@ signal finished
 
 const DUR := 2.0
 const BURST_AT := 1.97
-const N_FRAMES := 54
-const HEIGHT := 132.0        # px em campo (< 140 da carta; largura ~94 < slot)
+const N_FRAMES := 67
+const MAX_W := 112.0         # px: NUNCA encosta no campeão ao lado (slot 100 + folga)
+const MAX_H := 140.0         # px em campo (< 140 da carta)
 
 var _t := 0.0
 var _done := false
@@ -49,7 +51,7 @@ func setup(at: Vector2) -> void:
 	z_index = 86
 	_started = true
 	var tex: Texture2D = _frames[0]
-	_scale = HEIGHT / float(tex.get_height())
+	_scale = minf(MAX_W / float(tex.get_width()), MAX_H / float(tex.get_height()))
 	# ---- sombra contida no slot
 	_shadow = Sprite2D.new()
 	_shadow.texture = Vfx.radial("ovo3_shadow", 90, Color(0.0, 0.0, 0.0, 0.5), 0.1)
