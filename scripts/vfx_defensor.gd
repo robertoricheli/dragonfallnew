@@ -60,14 +60,16 @@ func setup(at: Vector2) -> void:
 	_rune.texture = Vfx.ring("def_rune", 150, Color(1.0, 0.80, 0.30, 0.95), 0.10)
 	_rune.material = Vfx.add_mat()
 	_rune.scale = Vector2(1.25, 0.42)
-	_rune.position = Vector2(0, 52)
+	# (1.49.98) rodas de runa no CENTRO da carta (regra do dono: o 2º
+	# círculo sobe da parte de baixo para o centro; o domo/aro não mudam)
+	_rune.position = Vector2(0, 0)
 	_rune.modulate = Color(1, 1, 1, 0)
 	add_child(_rune)
 	_rune2 = Sprite2D.new()
 	_rune2.texture = Vfx.ring("def_rune2", 108, Color(1.0, 0.90, 0.55, 0.9), 0.16)
 	_rune2.material = Vfx.add_mat()
 	_rune2.scale = Vector2(0.95, 0.32)
-	_rune2.position = Vector2(0, 52)
+	_rune2.position = Vector2(0, 0)
 	_rune2.modulate = Color(1, 1, 1, 0)
 	add_child(_rune2)
 	# ---- domo de energia (brilho esférico) + aro vivo

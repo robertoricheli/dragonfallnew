@@ -653,6 +653,8 @@ func _spawn_toast(text: String) -> void:
 
 
 func _on_card_drawn(pi: int, card: Dictionary, animated: bool) -> void:
+	if animated:
+		Sfx.play("draw", 1180.0 if pi == 0 else 100.0, 0.6)
 	var v := CardView.new()
 	v.setup(card, pi == 1)
 	v.drag_started.connect(_on_card_drag_started)
@@ -903,6 +905,7 @@ func _land_summon(v: ChampionView, cold: bool, pi: int) -> void:
 	if not is_instance_valid(v) or v.dying:
 		return
 	var center := v.position + v.size / 2.0
+	Sfx.play("summon_land", center.x, 0.7 if cold else 1.0)
 	if cold:
 		_fx_flash(Color(0.6, 0.85, 1.0, 0.10), 0.3)
 		_fx_ring(center, Color(0.4, 0.85, 1.0, 0.9), 24, 120, 0.5)
@@ -1133,6 +1136,7 @@ func _pre_shift(pi: int, insert_idx: int) -> void:
 
 
 func _on_champion_destroyed(pi: int, card: Dictionary, reason: String, gave_vp: bool) -> void:
+	Sfx.play("destroy", 640.0, 0.9)
 	var uid := int(card["uid"])
 	if String(_death_style.get(uid, "")) == "semhonra" and champ_views.has(uid):
 		# (1.49.80) SEM HONRA: NADA de explodir no meio da animação alheia.
@@ -1184,6 +1188,7 @@ func _on_champion_morphed(pi: int, card: Dictionary) -> void:
 
 
 func _on_attack_done(_att_p: int, _att_card: Dictionary, _def_p: int, _def_card: Dictionary, _result: String) -> void:
+	Sfx.play("attack", 640.0, 0.9)
 	pass  # log já emitido pelo estado
 
 
@@ -1205,6 +1210,7 @@ func _on_actions_changed(pi: int) -> void:
 
 
 func _on_turn_started(pi: int) -> void:
+	Sfx.play("turn", 640.0, 0.45)
 	_cancel_drags()
 	# (1.49.93) PESADELO sobre o herói: o efeito (e os fantasmas sobre a
 	# moldura) some quando TERMINA o turno do jogador afetado.
@@ -1394,6 +1400,7 @@ func _close_history() -> void:
 
 
 func _on_ult_pressed() -> void:
+	Sfx.play("ultimate", 640.0, 0.9)
 	if input_locked or state.current != 0 or state.winner != -1:
 		return
 	state.use_ultimate(0)
@@ -1707,6 +1714,7 @@ func _input(ev: InputEvent) -> void:
 
 
 func _on_fx_fire(from_pi: int, from_uid: int, target_uid: int) -> void:
+	Sfx.play("fireball_launch", 640.0, 0.9)
 	var dst_v: ChampionView = champ_views.get(target_uid)
 	if dst_v == null or not is_instance_valid(dst_v):
 		# sem view do alvo: aplica o dano imediatamente (sem animação)
@@ -1736,6 +1744,7 @@ func _on_fx_fire(from_pi: int, from_uid: int, target_uid: int) -> void:
 
 
 func _on_fx_congelar(_pi: int, _src: int, target_uid: int) -> void:
+	Sfx.play("congelar", 640.0, 0.9)
 	# (1.49.87) burst de congelamento sobre o alvo escolhido
 	var v: ChampionView = champ_views.get(target_uid)
 	var at: Vector2 = (v.global_position + v.size / 2.0) if (v != null and is_instance_valid(v)) else Vector2(FIELD_CX, AI_ROW_CY)
@@ -1754,6 +1763,7 @@ func _furia_sequence(uid: int) -> void:
 	var v: ChampionView = champ_views.get(uid)
 	if v == null or not is_instance_valid(v) or v.dying:
 		return
+	Sfx.play("raio", 640.0, 0.85)
 	var raio := RaioFX.new()
 	fx_layer.add_child(raio)
 	raio.setup(v.global_position + v.size / 2.0, 1.5)
@@ -1778,6 +1788,7 @@ func _grito_sequence(pi: int, self_uid: int) -> void:
 		var v: ChampionView = champ_views.get(uid)
 		if v == null or not is_instance_valid(v) or v.dying:
 			continue
+		Sfx.play("raio", 640.0, 0.85)
 		var raio := RaioFX.new()
 		fx_layer.add_child(raio)
 		raio.setup(v.global_position + v.size / 2.0, 1.0)
@@ -1789,6 +1800,7 @@ func _grito_sequence(pi: int, self_uid: int) -> void:
 
 
 func _defensor_sequence(uid: int) -> void:
+	Sfx.play("defensor", 640.0, 0.9)
 	# (1.49.93) DEFENSOR: 0,5 s após o pouso, a animação defensiva épica (1,5 s)
 	# cobre o Campeão; o ícone de PROTEÇÃO aparece 0,5 s após o INÍCIO dela.
 	await get_tree().create_timer(0.5).timeout
@@ -1811,6 +1823,7 @@ func _defensor_sequence(uid: int) -> void:
 
 
 func _guardiao_sequence(pi: int, self_uid: int) -> void:
+	Sfx.play("guardiao", 640.0, 0.9)
 	# (1.49.93) GUARDIÃO: 0,5 s após o pouso, um PILAR DE LUZ DO CÉU (1,0 s) cai
 	# sobre cada campeão aliado, UM POR UM; 0,5 s após o pilar de cada um, o
 	# ícone de PROTEÇÃO aparece sobre aquele aliado.
@@ -1838,6 +1851,7 @@ func _guardiao_sequence(pi: int, self_uid: int) -> void:
 
 
 func _ovo_sequence(pi: int) -> void:
+	Sfx.play("ovo_crackle", 640.0, 0.9)
 	# (1.49.93) INVOCAR DRAGÃO: 0,5 s após o pouso, o OVO aparece no slot onde o
 	# Filhote vai ficar, treme, racha e CHOCA com luz (1,5 s); no burst de luz o
 	# FILHOTE DE DRAGÃO é invocado e cai no campo sobre o brilho que esmaece.
@@ -1845,12 +1859,22 @@ func _ovo_sequence(pi: int) -> void:
 	if state == null or not is_inside_tree():
 		return
 	var n: int = state.players[pi]["field"].size()
+	# (1.49.98) o slot do Filhote fica LIVRE já no início do ovo: quem está na
+	# linha desliza para os n primeiros slots de uma linha de n+1 (posições
+	# idênticas às do layout final), então o ovo NUNCA aparece sobre uma carta.
+	for i in range(state.players[pi]["field"].size()):
+		var uidc := int(state.players[pi]["field"][i]["uid"])
+		var vc: ChampionView = champ_views.get(uidc)
+		if vc != null and is_instance_valid(vc) and not vc.dying:
+			var tw := vc.create_tween()
+			tw.tween_property(vc, "position", _slot_for(pi, i, n + 1), 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	var slot: Vector2 = _slot_for(pi, n, n + 1)
 	var center := slot + Vector2(CHAMP_W / 2.0, CHAMP_H / 2.0) + _field_offset()
 	var fx = load("res://scripts/vfx_ovo.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(center)
 	fx.burst.connect(func() -> void:
+		Sfx.play("ovo_hatch", center.x, 1.0)
 		if state != null and is_inside_tree():
 			state.resolve_invoke_dragon())
 	# segurança: se o burst não disparar por qualquer motivo, invoca no fim
@@ -1870,6 +1894,7 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 	if _pesadelo_running.has(uid):
 		return
 	_pesadelo_running[uid] = true
+	Sfx.play("pesadelo", 640.0, 0.85)
 	await get_tree().create_timer(0.5).timeout
 	if state == null or not is_inside_tree():
 		_pesadelo_running.erase(uid)
@@ -1896,6 +1921,7 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 
 
 func _desacelerar_sequence(pi: int, _uid: int) -> void:
+	Sfx.play("desacelerar", 640.0, 0.9)
 	# (1.49.94) DESACELERAR (Campeão e Talento): 0,5 s após a carta entrar em
 	# campo, um RELÓGIO MÁGICO de fantasia (bronze, runas, ponteiros voltando
 	# para trás) aparece sobre o campo adversário por 2,0 s. O efeito de jogo
@@ -1946,12 +1972,14 @@ func _on_fx_mordida(pi: int, src_uid: int, target_uid: int) -> void:
 	var fx = load("res://scripts/vfx_mordida.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(v.global_position + v.size / 2.0)
+	Sfx.play("mordida_launch", v.global_position.x, 0.9)
 	fx.finished.connect(func() -> void:
 		if state != null and is_inside_tree():
 			state.resolve_mordida(target_uid))
 
 
 func _on_fx_baforada(from_pi: int, from_uid: int, target_uid: int) -> void:
+	Sfx.play("baforada", 640.0, 0.9)
 	# (1.49.92) BAFORADA VENENOSA: o sopro do Dragão VERDE sai da carta Talento
 	# jogada e voa até o Campeão escolhido; NO IMPACTO ele recebe ENVENENADO
 	# (ícone no canto superior direito — sem animação persistente).
@@ -1980,6 +2008,7 @@ func _on_fx_baforada(from_pi: int, from_uid: int, target_uid: int) -> void:
 
 
 func _on_fx_forja(pi: int, _uid: int) -> void:
+	Sfx.play("forja", 640.0, 0.9)
 	# (1.49.86) FORJA = SAQUE LIVRE: 0,5 s após invocar, o jogador ganha uma
 	# carta com a MESMA animação de compra (sem gastar ação).
 	get_tree().create_timer(0.5).timeout.connect(func() -> void:
@@ -1988,6 +2017,7 @@ func _on_fx_forja(pi: int, _uid: int) -> void:
 
 
 func _on_fx_roubo(pi: int, foe: int, uid: int) -> void:
+	Sfx.play("roubo", 640.0, 0.8)
 	# (1.49.77) segurança idempotente: se o voo não resolver, o roubo efetiva
 	get_tree().create_timer(3.2).timeout.connect(func() -> void:
 		if state != null and is_inside_tree():
@@ -2024,6 +2054,7 @@ func _on_fx_roubo(pi: int, foe: int, uid: int) -> void:
 
 
 func _on_fx_fortalecer(_pi: int, src: int, target_uid: int) -> void:
+	Sfx.play("fortalecer", 640.0, 0.9)
 	# (1.49.70) VFX de Fortalecer: 2 s de aura verde ascendente; o +1 de Poder
 	# só é aplicado NO FIM da animação (resolve_fortalecer).
 	var v: ChampionView = champ_views.get(target_uid)

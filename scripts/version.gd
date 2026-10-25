@@ -4,9 +4,19 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.49.97"
+const CURRENT := "1.49.98"
 
 const NOTES := [
+	{
+		"ver": "1.49.98",
+		"data": "2026-10-25",
+		"mudancas": [
+			"ÁUDIO DAS ANIMAÇÕES (Fase 3 aprovada): central Sfx (autoload) com 22 sons sintetizados sob medida — simples e impactantes, um por animação/evento (invocar, comprar, atacar, destruir, bola de fogo, mordida, raio, congelar, baforada, fortalecer, defensor, guardião, pesadelo, desacelerar, ovo, forja, roubo, ultimate, turno...); pan pela posição X na tela, pitch ±4% e volume por evento.",
+			"OVO DO DRAGÃO (Habilidade e Talento) com o vídeo NOVO do dono ('OVO NOVO', 71 frames recortados do fundo preto): e agora a linha ABRE o slot do Filhote ANTES do ovo aparecer (quem está em campo desliza 0,25 s para os slots da linha de n+1) — o ovo NUNCA mais aparece sobre a carta de quem usou; 2,0 s e Filhote imediato após o fim.",
+			"DEFENSOR: o 2º círculo (rodas de runa) subiu da parte de baixo para o CENTRO da carta (regra do dono); o domo/aro ao redor da carta permanece intocado.",
+			"Novo teste t_96 (Sfx com 22 sons + play headless; slot do ovo livre a >= 100 px do caster; runas do defensor no centro); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.49.97",
 		"data": "2026-10-25",
@@ -105,16 +115,6 @@ const NOTES := [
 			"NOVA ANIMAÇÃO FÚRIA: 1s após invocar, um RAIO VERMELHO serrilhado (1,5s) cai do céu sobre o campeão com estrela de impacto, lascas e brasa no chão; 0,5s depois ele ganha FÚRIA: aura vermelha que SOBE do chão com dois OLHOS FURIOSOS, persistente enquanto o status durar.",
 			"NOVA ANIMAÇÃO GRITO DE GUERRA (campeão e carta TALENTO): 1s após invocar, raios vermelhos de 1,0s caem UM A UM em cada campeão aliado (menos no invocador); 0,5s após cada raio o aliado ganha FÚRIA com a mesma aura persistente.",
 			"TEXTOS DAS CARTAS: entrelinha padrão 0.88 e TODOS os textos centralizados por padrão; a descrição nunca fica incompleta nem vaza da área branca (fit automático por fonte).",
-		],
-	},
-	{
-		"ver": "1.49.87",
-		"data": "2026-10-22",
-		"mudancas": [
-			"EDITOR DE CARTA em tempo real: arrastar as alças já redimensiona o box E o texto ao vivo (igual ao resize de elementos); box de seleção agora envolve o texto de verdade (alinhado à esquerda quando não centralizado).",
-			"EDITOR DE CARTA: dois cliques num texto abrem o editor de texto SOMENTE daquela zona (nome, habilidade, descrição ou selo); selo Campeão/Talento/Reação também redimensionável (alças com afastamento mínimo).",
-			"EDITOR DE CARTA: ZOOM com scroll do mouse (1x–4x, estilo visualizador de imagem); clicar fora NÃO fecha mais — só ESC ou o novo botão VOLTAR; SALVAR mostra 'ATUALIZAÇÕES SALVAS!' e permanece no editor.",
-			"NOVA ANIMAÇÃO CONGELAR / ZERO ABSOLUTO: mira AZUL nos inimigos aptos (como a Bola de Fogo); ao confirmar, coluna de luz + anel de gelo no chão + burst de cristais; o congelado fica azulado com cristal de gelo no centro; Zero Absoluto congela 2 rodadas (destrói se já congelado); ícone de floco no zoom.",
 		],
 	},
 ]

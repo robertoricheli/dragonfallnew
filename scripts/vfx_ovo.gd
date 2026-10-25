@@ -1,7 +1,7 @@
 class_name OvoFX
 extends Node2D
 ## (1.49.97) HABILIDADE/CARTA TALENTO INVOCAR DRAGÃO — animação vinda do
-## VÍDEO do dono ("OVO DE DRAGÃO", 67 frames recortados do fundo PRETO com
+## VÍDEO do dono ("OVO NOVO", 71 frames recortados do fundo PRETO com
 ## keying profissional por conectividade: NADA do fundo preto aparece;
 ## pretos internos da arte preservados; bordas semi-transparentes com
 ## unblend; vinheta suave dissolve as lascas laterais): o ovo aparece
@@ -18,7 +18,7 @@ signal finished
 
 const DUR := 2.0
 const BURST_AT := 1.97
-const N_FRAMES := 67
+const N_FRAMES := 71
 const MAX_W := 112.0         # px: NUNCA encosta no campeão ao lado (slot 100 + folga)
 const MAX_H := 140.0         # px em campo (< 140 da carta)
 

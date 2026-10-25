@@ -22,6 +22,7 @@ var _done := false
 var _started := false
 var _frame := -1
 var _scale := 1.0
+var _hit_played := false
 
 var _seq: Sprite2D
 var _glow: Sprite2D
@@ -107,6 +108,9 @@ func _process(delta: float) -> void:
 	_glow.modulate = Color(1, 1, 1, Ease.out_cubic(mk) * (1.0 - outk) * (0.45 + 0.2 * sin(t * 12.0)))
 	# ---- acertos no instante da mordida
 	if t >= BITE_AT:
+		if not _hit_played:
+			_hit_played = true
+			Sfx.play("mordida_hit", position.x, 1.0)
 		var ik: float = clampf((t - BITE_AT) / 0.12, 0.0, 1.0)
 		var iff: float = clampf(1.0 - (t - BITE_AT - 0.12) / 0.18, 0.0, 1.0)
 		_ring.modulate = Color(1, 1, 1, ik * iff * 0.8)

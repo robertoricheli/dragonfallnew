@@ -91,6 +91,7 @@ func _process(d: float) -> void:
 
 
 func _explode() -> void:
+	Sfx.play("fireball_hit", global_position.x, 1.0)
 	_trail.emitting = false
 	_smoke_trail.emitting = false
 	_core.visible = false
