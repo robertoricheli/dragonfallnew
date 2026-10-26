@@ -102,8 +102,13 @@ func _t_assassinar() -> void:
 	b._layout_field(0)
 	b._layout_field(1)
 	await get_tree().create_timer(0.4).timeout
-	# destruição com reason "assassinar" (como o motor faz ao confirmar o alvo)
-	st.destroy_champion(1, tgt, 0, "assassinar", true)
+	# (1.50.2) MIRA com escolha: Poder 1 destacado e o jogador confirma o alvo
+	st._resolve_on_enter_named(0, as_, "assassinar")
+	if st.targeting.is_empty():
+		_fail("assassinar: mira não abriu para escolha")
+	elif not (st.targeting["candidates"] as Array).has(int(tgt["uid"])):
+		_fail("assassinar: alvo P1 não está entre os candidatos")
+	st.confirm_targeting(int(tgt["uid"]))
 	# (1.50.1) a animação só inicia 0,5 s após a escolha
 	await get_tree().create_timer(0.3).timeout
 	for ch in b.fx_layer.get_children():

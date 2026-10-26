@@ -77,6 +77,7 @@ func setup(from: Vector2, target: Vector2) -> void:
 	cg.offsets = [0.0, 0.25, 1.0]
 	cg.colors = [Color(0.10, 0.06, 0.16, 0.0), Color(0.08, 0.05, 0.13, 0.85), Color(0.05, 0.03, 0.09, 0.0)]
 	_smoke.color_ramp = cg
+	_smoke.position = from   # (1.50.2) SEM fumaça no canto da tela
 	add_child(_smoke)
 	# ---- fiapos roxos brilhantes na esteira
 	_wisp = CPUParticles2D.new()
@@ -96,6 +97,7 @@ func setup(from: Vector2, target: Vector2) -> void:
 	cg2.offsets = [0.0, 0.3, 1.0]
 	cg2.colors = [Color(0.8, 0.5, 1.0, 0.0), Color(0.65, 0.35, 1.0, 0.8), Color(0.4, 0.15, 0.7, 0.0)]
 	_wisp.color_ramp = cg2
+	_wisp.position = from   # (1.50.2) idem
 	add_child(_wisp)
 	# ---- kit de implosão no destino (reaproveitado por fantasma)
 	for i in 6:

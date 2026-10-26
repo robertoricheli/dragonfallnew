@@ -1,10 +1,10 @@
 class_name OvoFX
 extends Node2D
-## (1.50.1) HABILIDADE/CARTA TALENTO INVOCAR DRAGÃO — REFEITA SEM NENHUM
-## ASSET: o ovo é PINTADO POR CÓDIGO em runtime (4 estados gerados pixel a
-## pixel: casca teal com escamas e faixas rúnicas douradas -> fissuras finas
-## -> fissuras fundas com luz -> casca aberta com miolo de luz), no MESMO
-## roteiro: materializa no SLOT do Filhote com espiral de faíscas e anel
+## (1.50.2) HABILIDADE/CARTA TALENTO INVOCAR DRAGÃO — MESMO roteiro/animação,
+## agora com TEXTURAS PINTADAS semi-3D estilo Hearthstone (iguais à linguagem
+## da BAFORADA VENENOSA): 4 estados (casca teal com escamas e faixas rúnicas
+## -> fissuras finas -> fissuras fundas com luz -> casca aberta com miolo de
+## luz), recortadas do fundo preto com keying profissional. Roteiro: materializa no SLOT do Filhote com espiral de faíscas e anel
 ## rúnico, treme cada vez mais forte (squash), racha com clarões, e CHOCA com
 ## explosão, anel de choque, lascas, PILAR de energia e faíscas — contido no
 ## slot (<= 112x132 px), 2,0 s; burst em 1,9 s -> o Filhote surge em seguida.
@@ -47,82 +47,14 @@ var _shards: Array = []
 var _dust: CPUParticles2D
 var _sparkles: CPUParticles2D
 
-static var _tex_cache: Array = []
+const TEX_P1 := preload("res://assets/OVO_TEX_P1.png")
+const TEX_P2 := preload("res://assets/OVO_TEX_P2.png")
+const TEX_P3 := preload("res://assets/OVO_TEX_P3.png")
+const TEX_P4 := preload("res://assets/OVO_TEX_P4.png")
 
 
-# ------------------------------------------------------------------ pintura
-static func _seg_dist(px: float, py: float, a: Array) -> float:
-	var x1: float = a[0]; var y1: float = a[1]; var x2: float = a[2]; var y2: float = a[3]
-	var dx := x2 - x1; var dy := y2 - y1
-	var L := dx * dx + dy * dy
-	var tt := clampf(((px - x1) * dx + (py - y1) * dy) / maxf(L, 1e-6), 0.0, 1.0)
-	return Vector2(px - (x1 + dx * tt), py - (y1 + dy * tt)).length()
-
-
-static func egg_tex(level: int) -> ImageTexture:
-	if _tex_cache.size() == 0:
-		for i in 4:
-			_tex_cache.append(_paint_egg(i))
-	return _tex_cache[level]
-
-
-static func _paint_egg(level: int) -> ImageTexture:
-	var img := Image.create(TW, TH, false, Image.FORMAT_RGBA8)
-	# fissuras por nível (segmentos)
-	var cracks: Array = []
-	if level >= 1:
-		cracks.append([56, 60, 48, 74]); cracks.append([48, 74, 58, 88]); cracks.append([62, 52, 70, 66])
-	if level >= 2:
-		cracks.append([58, 88, 50, 104]); cracks.append([70, 66, 64, 84]); cracks.append([44, 62, 38, 78])
-	for y in TH:
-		for x in TW:
-			var nx := (float(x) - 56.0) / 40.0
-			var ny := (float(y) - 74.0) / 56.0
-			var d := nx * nx + ny * ny
-			# miolo de luz do choco (nível 3): abertura no topo
-			var open_hit := false
-			if level >= 3 and d <= 1.0 and ny < -0.30:
-				open_hit = true
-			# fragmentos voando (nível 3)
-			var frag := false
-			if level >= 3:
-				for fr in [[24, 40], [88, 34], [16, 86], [94, 92]]:
-					if Vector2(x - fr[0], y - fr[1]).length() < 5.0:
-						frag = true
-			if d > 1.0 and not frag:
-				img.set_pixel(x, y, Color(0, 0, 0, 0))
-				continue
-			var col: Color
-			if frag:
-				col = Color(0.10, 0.42, 0.36)
-			elif open_hit:
-				var g := clampf(1.0 - absf(ny + 0.55) * 3.0, 0.0, 1.0)
-				col = Color(1.0, 0.92, 0.55).lerp(Color(1.0, 1.0, 0.85), g)
-			else:
-				# casca: gradiente + padrão de escamas
-				var shade := 0.5 + 0.5 * sin(x * 0.52 + sin(y * 0.34) * 1.6) * cos(y * 0.21)
-				col = Color(0.04, 0.30, 0.26).lerp(Color(0.13, 0.58, 0.47), shade * 0.8 + 0.2 * (1.0 - ny * 0.5))
-				# faixas rúnicas douradas diagonais
-				var u := fmod(float(x) + float(y) * 0.55, 30.0)
-				if u < 6.0:
-					col = Color(0.82, 0.62, 0.24)
-					if fmod(float(x), 5.0) < 2.0:
-						col = Color(0.52, 0.36, 0.12)
-				# rim light quente à direita
-				var rim := clampf(nx * 0.8 - ny * 0.3, 0.0, 1.0)
-				col = col.lerp(Color(1.0, 0.78, 0.38), pow(rim, 2.2) * 0.55)
-				# sombra interna à esquerda
-				col = col.darkened(clampf(-nx * 0.35, 0.0, 0.35))
-			# fissuras com brilho
-			var cdist := 999.0
-			for c in cracks:
-				cdist = minf(cdist, _seg_dist(float(x), float(y), c))
-			if cdist < 1.3:
-				col = Color(1.0, 0.88, 0.45)
-			elif cdist < 3.0:
-				col = col.lerp(Color(1.0, 0.80, 0.35), (3.0 - cdist) / 1.7 * 0.7)
-			img.set_pixel(x, y, Color(col.r, col.g, col.b, 1.0))
-	return ImageTexture.create_from_image(img)
+static func egg_tex(level: int) -> Texture2D:
+	return [TEX_P1, TEX_P2, TEX_P3, TEX_P4][level]
 
 
 # ------------------------------------------------------------------ setup
@@ -130,7 +62,7 @@ func setup(at: Vector2) -> void:
 	position = at
 	z_index = 86
 	_started = true
-	_scale = minf(MAX_W / float(TW), MAX_H / float(TH))
+	_scale = minf(MAX_W / float(TEX_P1.get_width()), MAX_H / float(TEX_P1.get_height()))
 	_shadow = Sprite2D.new()
 	_shadow.texture = Vfx.radial("ovo5_shadow", 90, Color(0.0, 0.0, 0.0, 0.5), 0.1)
 	_shadow.scale = Vector2(1.0, 0.3)

@@ -935,10 +935,12 @@ func _land_summon(v: ChampionView, cold: bool, pi: int) -> void:
 		_desacelerar_sequence(pi, int(v.card["uid"]))
 	elif te == "desacelerarTalento":
 		# (1.49.94) Talento DESACELERAR: mesmo relógio mágico.
-		_desacelerar_sequence(pi, -1)
+		# (1.50.2) Talento só sai do campo 0,5 s após o fim da animação.
+		_desacelerar_sequence(pi, int(v.card["uid"]))
 	elif oe == "invokeDragon" or te == "invocarDragaoTalento":
 		# (1.49.93) o ovo do dragão aparece 0,5 s após o pouso e choca.
-		_ovo_sequence(pi)
+		# (1.50.2) Talento: registra o fim da animação p/ sair do campo +0,5 s.
+		_ovo_sequence(pi, int(v.card["uid"]) if te == "invocarDragaoTalento" else -1)
 	# (1.49.65) SEM quiche sobe-desce no pouso: a carta chega caindo pesada e
 	# pousa firme; o peso é transmitido pelo impacto (poeira/onda/clarão).
 	v.modulate = Color(1.5, 1.8, 2.1) if cold else Color(2.1, 1.85, 1.25)
@@ -1843,7 +1845,7 @@ func _guardiao_sequence(pi: int, self_uid: int) -> void:
 		state.resolve_guardiao(uid)
 
 
-func _ovo_sequence(pi: int) -> void:
+func _ovo_sequence(pi: int, talent_uid: int = -1) -> void:
 	# (1.50.1) INVOCAR DRAGÃO: 0,5 s após o pouso, o OVO aparece no slot onde o
 	# Filhote vai ficar, treme, racha e CHOCA com luz (1,5 s); no burst de luz o
 	# FILHOTE DE DRAGÃO é invocado e cai no campo sobre o brilho que esmaece.
@@ -1875,6 +1877,8 @@ func _ovo_sequence(pi: int) -> void:
 		if state != null and is_inside_tree():
 			state.resolve_invoke_dragon())
 	await fx.finished
+	if talent_uid >= 0:
+		_talent_anim_until[talent_uid] = Time.get_ticks_msec()
 
 
 func _pesadelo_sequence(pi: int, uid: int) -> void:
@@ -1911,7 +1915,7 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 	_show_pesadelo_hero(foe)
 
 
-func _desacelerar_sequence(pi: int, _uid: int) -> void:
+func _desacelerar_sequence(pi: int, talent_uid: int = -1) -> void:
 	Sfx.play("desacelerar", 640.0, 0.9)
 	# (1.49.94) DESACELERAR (Campeão e Talento): 0,5 s após a carta entrar em
 	# campo, um RELÓGIO MÁGICO de fantasia (bronze, runas, ponteiros voltando
@@ -1927,6 +1931,8 @@ func _desacelerar_sequence(pi: int, _uid: int) -> void:
 	fx.setup(dst)
 	Sfx.play("desacelerar", dst.x, 0.9)   # (1.50.1) som DURANTE a animação
 	await fx.finished
+	if talent_uid >= 0:
+		_talent_anim_until[talent_uid] = Time.get_ticks_msec()
 
 
 func _show_pesadelo_hero(pi: int) -> void:

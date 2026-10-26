@@ -43,8 +43,10 @@ func setup(v: ChampionView) -> void:
 	position = Vector2.ZERO
 	z_index = 95
 	_started = true
-	_pos = v.global_position + v.size / 2.0
-	_size = v.size
+	# (1.50.2) tamanho REAL em tela (a view tem scale de layout): a carta
+	# NUNCA muda de tamanho durante a morte especial.
+	_size = v.size * v.scale
+	_pos = v.global_position + _size / 2.0
 	_face_tex = v._face.texture if v._face != null else null
 	Sfx.play("assassinar_mark", _pos.x, 0.9)
 	# ---- adaga espectral

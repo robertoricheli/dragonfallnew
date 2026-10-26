@@ -4,9 +4,21 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.50.1"
+const CURRENT := "1.50.2"
 
 const NOTES := [
+	{
+		"ver": "1.50.2",
+		"data": "2026-10-25",
+		"mudancas": [
+			"INVOCAR DRAGÃO: MESMO roteiro/animação, agora com TEXTURAS PINTADAS semi-3D estilo Hearthstone (linguagem da BAFORADA VENENOSA): 4 estados recortados do fundo preto com keying profissional (sem caixa preta).",
+			"CARTA TALENTO: só sai do campo 0,5 s DEPOIS do fim da animação dela (Filhote de Dragão e Desacelerar registrados no _talent_anim_until; regra já valia p/ Bola de Fogo/Forja/Fortalecer).",
+			"ASSASSINAR agora abre MIRA de verdade: campeões adversários com Poder 1 ficam DESTACADOS (vermelho) e o jogador ESCOLHE o alvo (IA pensa 1,6 s e escolhe); animação inicia 0,5 s após a escolha; a carta destruída NÃO muda de tamanho (metades/pedaços na escala real em tela); som de ESPADA DESEMBAINHADA no corte e estilhaços sem sino.",
+			"PESADELO: a fumaça negra e os fiapos agora nascem NO CAMPEÃO que invocou — nunca mais no canto da tela (emissores estavam na origem do layer).",
+			"SONS REFEITOS: PROTEÇÃO = baque pesado de escudo (placa grossa + sub + domo, sem campainha); GUARDIÃO = hit divino/orquestral (boom + coro formante + shimmer de ar); DESACELERAR = relógio com ponteiros girando rápido e DESACELERANDO (ticks + catraca desacelerando + tick final); COMPRA = virar página de livro; MORDIDA = mordida impactante (clap de mandíbula + crunch + squelch).",
+			"Testes t_90–t_97 + smoke OK (t_97 valida mira do Assassinar com escolha + delay); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.50.1",
 		"data": "2026-10-25",
@@ -97,19 +109,6 @@ const NOTES := [
 			"MORDIDA VENENOSA NOVA sem cobra: uma MANDÍBULA ESPECTRAL DE PRESAS venenosas (4 frames pintados) abre sobre o alvo, dá o BOTE em 0,12 s com clarão, anel, marcas de presa e respingos de veneno, treme cravada escorrendo veneno e dissolve em névoa tóxica.",
 			"NOVA animação DESACELERAR (Campeão e Talento): 0,5 s após a carta entrar em campo, um RELÓGIO MÁGICO de fantasia (bronze, runas, cristal ciano — nada moderno) aparece por 2,0 s sobre o campo adversário com ponteiros VOLTANDO PARA TRÁS em ticks, ondas temporais em câmera lenta e areia rúnica.",
 			"Novo teste de regressão t_94 (pesadelo da IA sem duplicata no topo + campo afetado; sem texto de status; barreira como ícone; VFX ovo/mordida/relógio rodando headless); pack web reexportado — Ctrl+F5.",
-		],
-	},
-	{
-		"ver": "1.49.93",
-		"data": "2026-10-22",
-		"mudancas": [
-			"DEFENSOR: 0,5 s após o pouso, uma DEFESA ÉPICA dourada de 1,5 s (runas no chão, domo de energia, brasão de luz e poeira dourada) cobre o Campeão; o ícone de PROTEÇÃO aparece 0,5 s após o início dela.",
-			"GUARDIÃO: 0,5 s após o pouso, um PILAR DE LUZ DO CÉU (1 s) cai sobre cada campeão aliado UM POR UM; 0,5 s após o pilar de cada um, o ícone de PROTEÇÃO aparece sobre aquele aliado.",
-			"BAFORADA VENENOSA refeita: agora é um SOPRO DE DRAGÃO VERDE de verdade — cone SUSTENTADO de fogo verde com núcleo incandescente, línguas de chama, fumaça escura e brasas que ENGOLFA o alvo (chamas lambendo a carta) e só cessa no fim.",
-			"MORDIDA VENENOSA AAA: a cabeça da SERPENTE VENENOSA (arte pintada com presas neon) dá o BOTE do céu, CRAVA AS PRESAS no alvo (clarão, anel, respingos, marcas de presa, baba e névoa tóxica) e recua; o veneno entra só no fim.",
-			"INVOCAR DRAGÃO: 0,5 s após o pouso um OVO DE DRAGÃO (arte pintada em 3 estados: inteiro, rachado com luz e chocando) aparece no slot do Filhote, treme, racha e CHOCA com explosão de luz e pilar de energia (1,5 s); só então o FILHOTE cai no campo.",
-			"PESADELO: 0,5 s após o pouso o campeão lança MUITOS FANTASMAS (estilo Boo, arte pintada) e FUMAÇA NEGRA em cone sobre o campo adversário (2 s); depois, fantasminhas e fumaça sobem em LOOP acima da moldura do herói afetado até o fim do turno dele (sem saque livre).",
-			"Segurança de motor: Defensor/Guardião/Pesadelo/Invocar Dragão ficam PENDENTES durante a animação e o flush de fim de turno aplica qualquer efeito restante (gameplay nunca espera a tela); novo teste t_93; pack web reexportado — Ctrl+F5.",
 		],
 	},
 	{

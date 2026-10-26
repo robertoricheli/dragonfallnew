@@ -1065,7 +1065,13 @@ func auto_pick_uid() -> int:
 func _begin_or_resolve_target(pi: int, card: Dictionary, effect: String, source_uid: int) -> void:
 	var ally_eff := _effect_is_ally(effect)
 	var pool: Array
-	if ally_eff:
+	if effect == "assassinar":
+		# (1.50.2) só Campeões adversários com Poder 1 estão aptos
+		pool = players[1 - pi]["field"].filter(func(c): return int(c["power"]) == 1)
+		if pool.is_empty():
+			log_msg.emit("Assassinar: nenhum Campeão P1 adversário.")
+			return
+	elif ally_eff:
 		# (1.49.70) FORTALECER: os OUTROS campeões aliados ficam aptos (verde)
 		pool = players[pi]["field"].filter(func(c): return int(c["uid"]) != int(card["uid"]))
 	else:
@@ -1094,7 +1100,9 @@ func _begin_or_resolve_target(pi: int, card: Dictionary, effect: String, source_
 		# sem espera (simulações) ou mira já ocupada: resolve no mais forte
 		var t := _strongest(pool)
 		if not t.is_empty():
-			if _is_congelar(effect):
+			if effect == "assassinar":
+				_apply_assassinar(pi, t)
+			elif _is_congelar(effect):
 				_apply_congelar(pi, source_uid, t, effect)
 			elif effect == "mordidaVenenosa":
 				_apply_mordida(pi, source_uid, t)
@@ -1145,6 +1153,8 @@ func confirm_targeting(uid: int) -> void:
 			break
 	if t.is_empty():
 		log_msg.emit("Fortalecer: sem aliado." if ally_eff else "Bola de Fogo: sem alvo.")
+	elif String(targeting_effect) == "assassinar":
+		_apply_assassinar(pi, t)
 	elif _is_congelar(String(targeting_effect)):
 		_apply_congelar(pi, src, t, String(targeting_effect))
 	elif String(targeting_effect) == "mordidaVenenosa":
@@ -1382,6 +1392,12 @@ func resolve_fortalecer(uid: int) -> void:
 				break
 
 
+func _apply_assassinar(pi: int, t: Dictionary) -> void:
+	# (1.50.2) eliminação especial: a Tela de Combate roda a morte da ADAGA.
+	log_msg.emit("Assassinar: %s (P1) foi eliminado!" % t["name"])
+	destroy_champion(1 - pi, t, pi, "assassinar", true)
+
+
 func _apply_bola(pi: int, source_uid: int, t: Dictionary) -> void:
 	# (1.49.63) O dano NÃO é imediato: fica PENDENTE até a animação da Bola de
 	# Fogo chegar no alvo (resolve_bola é chamado pela Tela de Combate no
@@ -1495,13 +1511,9 @@ func _resolve_on_enter_named(pi: int, card: Dictionary, effect: String) -> void:
 		"bolaDeFogo":
 			_begin_or_resolve_target(pi, card, "bolaDeFogo", int(card["uid"]))
 		"assassinar":
-			var targets := foe_field.filter(func(c): return int(c["power"]) == 1)
-			if targets.is_empty():
-				log_msg.emit("Assassinar: nenhum Campeão P1 adversário.")
-			else:
-				var t: Dictionary = _random_card(targets)
-				log_msg.emit("Assassinar: %s (P1) foi eliminado!" % t["name"])
-				destroy_champion(foe_pi, t, pi, "assassinar", true)
+			# (1.50.2) MIRA com ESCOLHA: campeões adversários com Poder 1 ficam
+			# destacados (vermelho) e o dono da habilidade ESCOLHE o alvo.
+			_begin_or_resolve_target(pi, card, "assassinar", int(card["uid"]))
 		"rapidez":
 			players[pi]["actions"] += 1
 			actions_changed.emit(pi)
