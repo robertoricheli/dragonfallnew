@@ -32,8 +32,9 @@ func setup(v: ChampionView) -> void:
 	position = Vector2.ZERO
 	z_index = 91
 	_started = true
+	# (1.50.5) aura CONCENTRADA NO CENTRO da carta (rect global real)
+	_pos = v.get_global_rect().get_center()
 	_size = v.size * v.scale
-	_pos = v.global_position + _size / 2.0
 	_base_mod = v.modulate
 	# ---- vórtices contrarrotativos
 	_vort1 = Sprite2D.new()
@@ -56,7 +57,8 @@ func setup(v: ChampionView) -> void:
 	_ring.material = Vfx.add_mat()
 	_ring.scale = Vector2(1.0, 0.32)
 	_ring.modulate = Color(1, 1, 1, 0)
-	_ring.position = _pos + Vector2(0, _size.y / 2.0 - 4.0)
+	_ring.position = _pos
+	_ring.scale = Vector2(0.9, 0.62)
 	add_child(_ring)
 	# ---- núcleo escuro no peito da carta
 	_core = Sprite2D.new()
@@ -78,7 +80,7 @@ func setup(v: ChampionView) -> void:
 	_mist.gravity = Vector2(0, -14)
 	_mist.scale_amount_min = 1.0
 	_mist.scale_amount_max = 2.2
-	_mist.position = _pos + Vector2(0, _size.y / 2.0 - 8.0)
+	_mist.position = _pos + Vector2(0, 10.0)
 	add_child(_mist)
 	# ---- partículas sugadas para o centro
 	for i in 8:

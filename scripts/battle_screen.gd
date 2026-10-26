@@ -109,6 +109,8 @@ var _pesadelo_hero_node: Node2D = null
 var _pesadelo_hero_pi := -1
 var _pesadelo_turn_seen := false
 var _pesadelo_running := {}   # (1.49.94) uid -> cone em andamento (anti-duplicata)
+var _bolhas_hero_node: Node2D = null
+var _bolhas_hero_pi := -1
 var _assassinar_hold := {}      # (1.50.4) pi -> mortes p/ adaga em curso (segura o re-layout)
 var _sobre_hold := {}           # (1.50.4) uid -> destruição SOBREPUJAR segurando o padrão
 var _sobre_anim := {}           # (1.50.4) uid -> animação especial em curso
@@ -600,6 +602,8 @@ func _start_match() -> void:
 	state.fx_congelar.connect(_on_fx_congelar)
 	state.fx_mordida.connect(_on_fx_mordida)
 	state.fx_corromper.connect(_on_fx_corromper)
+	state.fx_bolhas.connect(_on_fx_bolhas)
+	state.bolhas_ended.connect(_on_bolhas_ended)
 	state.fx_baforada.connect(_on_fx_baforada)
 	state.fx_enabled = true
 	state.destroy_style.connect(_on_destroy_style)
@@ -935,6 +939,9 @@ func _land_summon(v: ChampionView, cold: bool, pi: int) -> void:
 	elif oe == "pesadelo":
 		# (1.49.93) enxurrada de fantasmas 0,5 s após o pouso.
 		_pesadelo_sequence(pi, int(v.card["uid"]))
+	elif oe == "rapidez":
+		# (1.50.5) RAPIDEZ: animação divertida de velocidade 1 s após o pouso.
+		_acelerar_sequence(pi, int(v.card["uid"]))
 	elif oe == "desacelerar":
 		# (1.49.94) relógio mágico no campo adversário 0,5 s após o pouso.
 		_desacelerar_sequence(pi, int(v.card["uid"]))
@@ -1174,9 +1181,9 @@ func _on_champion_destroyed(pi: int, card: Dictionary, reason: String, gave_vp: 
 			_refresh_counts()
 			return
 		if _sobre_hold.has(uid):
-			# (1.50.4) segura a destruição padrão: o perdedor volta ao lugar e
-			# só então recebe a animação especial de SOBREPUJAR. A view fica
-			# registrada (com guarda) até o fim da animação especial.
+			# (1.50.4/1.50.5) segura a destruição padrão E o re-layout: a linha
+			# só reorganiza 0,5 s após o fim da animação especial de SOBREPUJAR.
+			_assassinar_hold[pi] = int(_assassinar_hold.get(pi, 0)) + 1
 			_sobre_hold.erase(uid)
 			_sobre_anim[uid] = true
 			champ_views[uid] = v
@@ -1675,6 +1682,8 @@ func _open_zoom(card: Dictionary) -> void:
 			status_list.append(["res://assets/VFX_FLOCO.png", "CONGELADO", "(%d rodada(s) restante(s))" % int(card.get("frozen_turns", 0))])
 		if int(card.get("poison_turns", 0)) > 0:
 			status_list.append(["res://assets/ICO_VENENO.svg", "ENVENENADO", "(será destruído em %d rodada(s))" % int(card.get("poison_turns", 0))])
+		if card.get("bolhas", false):
+			status_list.append(["res://assets/ICO_BOLHAS.svg", "BOLHAS", "(invocado sem habilidade)"])
 		if int(card.get("burn_turns", 0)) > 0:
 			status_list.append(["res://assets/ICO_CHAMAS.svg", "CHAMAS", ""])
 		if int(card.get("fury_stacks", 0)) > 0:
@@ -1959,7 +1968,7 @@ func _acelerar_sequence(pi: int, talent_uid: int = -1) -> void:
 	fx.setup(v)
 	Sfx.play("acelerar", v.global_position.x, 0.9)   # som DURANTE
 	await fx.finished
-	if talent_uid >= 0:
+	if talent_uid >= 0 and extra_views.has(talent_uid):
 		_talent_anim_until[talent_uid] = Time.get_ticks_msec()
 
 
@@ -2028,7 +2037,10 @@ func _sobre_sequence(winner_uid: int, loser_uid: int, style: String) -> void:
 	_fx_ring(center, Color(1, 0.35, 0.25, 0.9), 26, 130, 0.5)
 	Sfx.play("destroy", center.x, 0.9)
 	lv.queue_free()
-	_layout_field(lpi)
+	await get_tree().create_timer(0.5).timeout
+	_assassinar_hold[lpi] = maxi(0, int(_assassinar_hold.get(lpi, 0)) - 1)
+	if is_inside_tree():
+		_layout_field(lpi)
 
 
 func _fx_escudo(v: ChampionView) -> void:
@@ -2058,6 +2070,56 @@ func _fx_escudo(v: ChampionView) -> void:
 	tw.parallel().tween_callback(rim.queue_free)
 
 
+func _on_fx_bolhas(pi: int, src_uid: int, foe_pi: int) -> void:
+	# (1.50.5) BOLHAS: 0,5 s após entrar em campo, cone de bolhas do campeão
+	# até o campo do alvo; depois, bolhas em loop sobre o avatar do herói
+	# afetado (somem quando o 1º campeão com bolhas for invocado).
+	await get_tree().create_timer(0.5).timeout
+	if state == null or not is_inside_tree():
+		return
+	var src := Vector2(FIELD_CX, PL_ROW_CY if pi == 0 else AI_ROW_CY)
+	var v: ChampionView = champ_views.get(src_uid)
+	if v == null or not is_instance_valid(v):
+		v = extra_views.get(src_uid)
+	if v != null and is_instance_valid(v):
+		src = v.get_global_rect().get_center()
+	var dst := Vector2(FIELD_CX, AI_ROW_CY if foe_pi == 1 else PL_ROW_CY)
+	var fx = load("res://scripts/vfx_bolhas.gd").new()
+	fx_layer.add_child(fx)
+	fx.setup(src, dst)
+	Sfx.play("bolhas", src.x, 0.9)
+	if src_uid >= 0 and extra_views.has(src_uid):
+		_talent_anim_until[src_uid] = Time.get_ticks_msec() + 2400
+	await fx.finished
+	if src_uid >= 0 and extra_views.has(src_uid):
+		_talent_anim_until[src_uid] = Time.get_ticks_msec()
+	if is_inside_tree():
+		_show_bolhas_hero(foe_pi)
+
+
+func _show_bolhas_hero(pi: int) -> void:
+	_clear_bolhas_hero()
+	var med: Control = hero_meds[pi]["medal"]
+	var fx = load("res://scripts/bolhas_hero_fx.gd").new()
+	fx_layer.add_child(fx)
+	fx.setup(med.global_position + Vector2(32.0, -6.0))
+	_bolhas_hero_node = fx
+	_bolhas_hero_pi = pi
+
+
+func _clear_bolhas_hero() -> void:
+	if _bolhas_hero_node != null and is_instance_valid(_bolhas_hero_node):
+		_bolhas_hero_node.queue_free()
+	_bolhas_hero_node = null
+	_bolhas_hero_pi = -1
+
+
+func _on_bolhas_ended(pi: int) -> void:
+	# (1.50.5) o 1º campeão com bolhas foi invocado: as bolhas do herói somem.
+	if _bolhas_hero_pi == pi:
+		_clear_bolhas_hero()
+
+
 func _on_fx_corromper(pi: int, src_uid: int, target_uid: int) -> void:
 	# (1.50.4) CORROMPER: 0,5 s após a escolha, aura negra 1,5 s no aliado;
 	# o status SEM HONRA entra 0,5 s DEPOIS do fim da aura.
@@ -2072,6 +2134,9 @@ func _on_fx_corromper(pi: int, src_uid: int, target_uid: int) -> void:
 	fx_layer.add_child(fx)
 	fx.setup(v)
 	Sfx.play("corromper", v.global_position.x, 0.9)
+	if src_uid >= 0 and extra_views.has(src_uid):
+		# (1.50.5) o Talento só sai 0,5 s após o fim da aura (marca já no início)
+		_talent_anim_until[src_uid] = Time.get_ticks_msec() + 2600
 	await fx.finished
 	await get_tree().create_timer(0.5).timeout
 	if state != null and is_inside_tree():

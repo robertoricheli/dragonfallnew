@@ -30,6 +30,7 @@ const STATUS_ICON_STEP := 26.0
 const STATUS_ICON_TEX := {
 	"prot": preload("res://assets/ICO_PROTECAO.svg"),
 	"barreira": preload("res://assets/ICO_BARREIRA.svg"),
+	"bolhas": preload("res://assets/ICO_BOLHAS.svg"),
 	"semhonra": preload("res://assets/ICO_CAVEIRA.svg"),
 	"veneno": preload("res://assets/ICO_VENENO.svg"),
 	"furia": preload("res://assets/ICO_FURIA.svg"),
@@ -584,6 +585,8 @@ func _active_statuses() -> Array[String]:
 		keys.append("prot")
 	if int(card.get("barrier_turns", 0)) != 0:
 		keys.append("barreira")   # (1.49.94) BARREIRA = só ícone no canto
+	if card.get("bolhas", false):
+		keys.append("bolhas")     # (1.50.5) BOLHAS = ícone no canto
 	if _has_sem_honra():
 		keys.append("semhonra")
 	if int(card.get("poison_turns", 0)) > 0:

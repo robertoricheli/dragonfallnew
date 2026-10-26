@@ -4,9 +4,23 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.50.4"
+const CURRENT := "1.50.5"
 
 const NOTES := [
+	{
+		"ver": "1.50.5",
+		"data": "2026-10-26",
+		"mudancas": [
+			"RENOMEIOS: campeão BOLHAS -> OCEANA; habilidade e Carta Talento MALDIÇÃO DOS SETE MARES -> BOLHAS (nome, ability_name e descrições).",
+			"BOLHAS (mecânica recapitulada e agora VISÍVEL): ao trigger, TODOS os campeões atuais e futuros da mão do adversário ganham o status BOLHAS (ícone no canto + descrição no zoom); o PRIMEIRO invocado entra SEM habilidade e mantém o status; os demais perdem o status; as bolhas do herói somem nesse momento.",
+			"NOVA animação BOLHAS: 0,5 s após entrar em campo, CONE de bolhas de sabão iridescentes (pintadas por código) voa do campeão até o campo do alvo estourando com mini-flashes; depois, BOLHAS DE SABÃO sobem em LOOP acima do avatar do herói afetado (como no PESADELO) até o 1º invocado com bolhas.",
+			"NOVA animação RAPIDEZ (Habilidade): 1 s após entrar em campo, 1,5 s da animação divertida de velocidade (dashes com pós-imagens, linhas, poeira e boom sônico), mesma família da ACELERAÇÃO.",
+			"CORROMPER: aura agora CONCENTRADA NO CENTRO da carta (rect global real; anel e névoa recentrados) — roteiro intocado; o Talento CORROMPER só sai do campo 0,5 s após o fim da aura (marca desde o início da animação).",
+			"SOBREPUJAR: os aliados só se REORGANIZAM 0,5 s após o fim da destruição especial do perdedor.",
+			"Som de INVOCAÇÃO v7 (impacto definitivo: sub 42->18 Hz + duplo baque + detritos + rumble) e som novo de BOLHAS (whoosh aquoso + pops de sabão + espuma); central Sfx com 31 chaves.",
+			"Testes t_90–t_100 + smoke OK (t_100: mecânica BOLHAS ponta-a-ponta + RAPIDEZ); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.50.4",
 		"data": "2026-10-26",
@@ -98,17 +112,6 @@ const NOTES := [
 			"DESACELERAR (Habilidade e Talento) com o NOVO vídeo do dono (fundo PRETO): 60 frames do relógio arcano com engrenagens e vórtice de tempo, recortados sem nenhum resquício de fundo; 2,6 s sobre o campo adversário, um pouco maior que uma carta, contido na linha.",
 			"MORDIDA VENENOSA mantida como na 1.49.96 (vídeo recortado do fundo branco, 0,5 s após o alvo, menor que a carta).",
 			"Testes t_90–t_95 + smoke OK (t_95 valida 67/60 frames, largura do ovo <= 116 px e relógio > carta); pack web reexportado — Ctrl+F5.",
-		],
-	},
-	{
-		"ver": "1.49.96",
-		"data": "2026-10-24",
-		"mudancas": [
-			"INVOCAR DRAGÃO (Habilidade E Carta Talento) agora usa o VÍDEO do dono 'FILHOTE DE DRAGÃO': 54 frames recortados do fundo branco com keying profissional (bg transparente, miolo de luz preservado com glow aditivo 'de dentro'); o ovo aparece SOMENTE no slot do Filhote (94x132 px, nunca encosta no campeão que usou) por 2,0 s e IMMEDIATAMENTE após o fim do vídeo o Filhote surge em campo.",
-			"MORDIDA VENENOSA agora usa o VÍDEO do dono: 40 frames recortados profissionalmente; 0,5 s após a seleção do alvo a mandíbula venenosa (120 px, MENOR que as cartas) aparece SOBRE o campeão alvo com brilho tóxico, anel e gotas no impacto; veneno aplicado no fim (1,33 s).",
-			"DESACELERAR (Habilidade e Talento) agora usa o VÍDEO do dono: 78 frames recortados do fundo branco; o relógio arcano (170 px, um pouco maior que a carta) roda integralmente por 2,6 s sobre o campo adversário, contido na linha, com anel rúnico local, ticks e areia de tempo.",
-			"Recortes dos vídeos feitos com keying profissional: fundo branco virou alpha transparente por conectividade (brancos internos do glow preservados), bordas semi-transparentes com unblend — sem nenhum resquício de fundo branco em campo.",
-			"Assets das animações anteriores (sheets 1.49.95) removidos do projeto; teste t_95 reescrito (tamanhos/slot/delay/veneno); pack web reexportado — Ctrl+F5.",
 		],
 	},
 	{

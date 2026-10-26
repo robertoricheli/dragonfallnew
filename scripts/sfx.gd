@@ -37,6 +37,7 @@ const KEYS := {
 	"punch": "res://assets/sfx/punch.wav",
 	"rapier": "res://assets/sfx/rapier.wav",
 	"escudo": "res://assets/sfx/escudo.wav",
+	"bolhas": "res://assets/sfx/bolhas.wav",
 }
 
 const POOL := 10

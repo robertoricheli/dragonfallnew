@@ -85,7 +85,7 @@ static func _best_summon(state: GameState, pi: int) -> Dictionary:
 				score += 7.0
 			"fortalecer", "ursificacao", "devorar", "corromper":
 				score += 4.0 if not allies.is_empty() else 0.0
-			"roubar", "pesadelo", "desacelerar", "maldicaoSeteMares", "enfraquecer", "podridao":
+			"roubar", "pesadelo", "desacelerar", "bolhas", "enfraquecer", "podridao":
 				score += 5.0
 			"defensor", "auraAntiMagia", "guardiao", "gritoDeGuerra", "furia", "tecnicasDeCombate":
 				score += 4.0
@@ -150,7 +150,7 @@ static func _best_talent(state: GameState, pi: int) -> Dictionary:
 				play = p["discard"].any(func(c): return c["category"] == "champion" and int(c.get("power", 0)) == 2) and p["field"].size() < GameState.MAX_FIELD
 			"enfraquecerTalento":
 				play = int(state.players[1 - pi]["vp"]) > 0
-			"podridaoTalento", "maldicaoSeteMaresTalento", "desacelerarTalento", "cancelarUltimate":
+			"podridaoTalento", "bolhasTalento", "desacelerarTalento", "cancelarUltimate":
 				play = true
 			"contramagica", "exaustao":
 				play = not foes.is_empty() or not state.players[1 - pi]["hand"].is_empty()

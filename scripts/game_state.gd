@@ -28,6 +28,8 @@ signal fx_roubo(pi, foe_pi, uid)
 signal fx_forja(pi, source_uid)
 signal fx_congelar(pi, source_uid, target_uid)
 signal fx_mordida(pi, source_uid, target_uid)
+signal fx_bolhas(pi, source_uid, foe_pi)
+signal bolhas_ended(pi)
 signal fx_corromper(pi, source_uid, target_uid)
 signal fx_baforada(pi, source_uid, target_uid)
 ## (1.49.76) estilo de animação de destruição especial: "semhonra" | "recompensa" | ""
@@ -79,7 +81,7 @@ func _make_player(pname: String, hero: Dictionary, is_ai: bool) -> Dictionary:
 		"name": pname, "hero": hero, "is_ai": is_ai,
 		"vp": 0, "actions": MAX_ACTIONS,
 		"hand": [], "field": [], "deck": [], "discard": [],
-		"skip_draw": false, "skip_next_action": false, "curse_next": false,
+		"skip_draw": false, "skip_next_action": false, "bolhas_active": false,
 		"energy": 0, "ult_remaining": 0, "ult_used_this_turn": false,
 		"stats": {"summons": 0, "attacks": 0, "talents": 0, "ultimates": 0, "champKills": 0},
 	}
@@ -293,6 +295,9 @@ func draw_cards(pi: int, n: int) -> int:
 		var c := _raw_draw(pi)
 		if not c.is_empty():
 			got += 1
+			# (1.50.5) compras futuras também ganham BOLHAS enquanto ativo
+			if players[pi]["bolhas_active"] and String(c.get("category", "")) == "champion":
+				c["bolhas"] = true
 	hand_changed.emit(pi)
 	return got
 
@@ -399,10 +404,16 @@ func play_card(pi: int, hand_idx: int, insert_at: int = -1) -> bool:
 		play_history.append({"card": card.duplicate(), "pi": pi})
 		p["stats"]["summons"] = int(p["stats"]["summons"]) + 1
 		card["tapped"] = false
-		if p["curse_next"]:
-			p["curse_next"] = false
+		# (1.50.5) BOLHAS: o 1º campeão da mão afetada entra SEM habilidade e
+		# mantém o status BOLHAS; os demais da mão perdem o status; as bolhas
+		# do herói somem (bolhas_ended).
+		if p["bolhas_active"] and card.get("bolhas", false):
 			card["silenced"] = true
-			log_msg.emit("Maldição dos Sete Mares: %s entra sem habilidade!" % card["name"])
+			p["bolhas_active"] = false
+			for c in p["hand"]:
+				c.erase("bolhas")
+			log_msg.emit("Bolhas: %s entra sem habilidade!" % card["name"])
+			bolhas_ended.emit(pi)
 		champion_summoned.emit(pi, card)
 		field_changed.emit(pi)
 		log_msg.emit("%s invocou %s (P%d)." % [p["name"], card["name"], card["current_power"]])
@@ -1380,6 +1391,18 @@ func _apply_mordida(pi: int, source_uid: int, t: Dictionary) -> void:
 		fx_mordida.emit(pi, source_uid, int(t["uid"]))
 
 
+func _apply_bolhas(pi: int, foe_pi: int, src_uid: int) -> void:
+	# (1.50.5) BOLHAS: TODOS os campeões atuais (e futuros) da mão do
+	# adversário ganham o status BOLHAS até o primeiro ser invocado.
+	players[foe_pi]["bolhas_active"] = true
+	for c in players[foe_pi]["hand"]:
+		if String(c.get("category", "")) == "champion":
+			c["bolhas"] = true
+	log_msg.emit("Bolhas: a mão de %s foi coberta de bolhas!" % players[foe_pi]["name"])
+	hand_changed.emit(foe_pi)
+	fx_bolhas.emit(pi, src_uid, foe_pi)
+
+
 func _apply_corromper(pi: int, t: Dictionary, src_uid: int = -1) -> void:
 	# (1.50.4) CORROMPER com animação: aura negra 1,5 s e o status SEM HONRA
 	# só entra 0,5 s DEPOIS do fim dela (a Tela de Combate chama resolve).
@@ -1570,9 +1593,8 @@ func _resolve_on_enter_named(pi: int, card: Dictionary, effect: String) -> void:
 					card["current_power"] += gained
 		"transformarBichinho":
 			_do_transformar_bichinho(pi, foe_pi, foe_field)
-		"maldicaoSeteMares":
-			players[foe_pi]["curse_next"] = true
-			log_msg.emit("Maldição dos Sete Mares: o próximo campeão adversário entra sem habilidade!")
+		"bolhas":
+			_apply_bolhas(pi, foe_pi, int(card["uid"]))
 		"imitar":
 			var allies := my_field.filter(func(c): return int(c["uid"]) != int(card["uid"]))
 			var t := _random_card(allies)
@@ -1979,9 +2001,8 @@ func _resolve_talent(pi: int, card: Dictionary) -> void:
 				t["burn_turns"] = maxi(int(t["burn_turns"]), 4)
 				t["burn_by"] = pi
 				log_msg.emit("Tornado de Fogo: %s perde 1 de Poder por rodada!" % t["name"])
-		"maldicaoSeteMaresTalento":
-			players[foe_pi]["curse_next"] = true
-			log_msg.emit("Maldição dos Sete Mares: o próximo campeão adversário entra sem habilidade!")
+		"bolhasTalento":
+			_apply_bolhas(pi, foe_pi, int(card["uid"]))
 		"trocaDeLugar":
 			var mine := my_field.filter(func(c): return int(c["current_power"]) == 1)
 			var theirs := foe_field.filter(func(c): return int(c["current_power"]) == 2)
