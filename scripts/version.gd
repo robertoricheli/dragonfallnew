@@ -4,9 +4,20 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.50.2"
+const CURRENT := "1.50.3"
 
 const NOTES := [
+	{
+		"ver": "1.50.3",
+		"data": "2026-10-25",
+		"mudancas": [
+			"SAQUE LIVRE com ritmo: a compra automática do início da partida só acontece 1,0 s após o começo; após passar a vez, o saque do próximo jogador acontece 0,5 s depois (antes era instantâneo).",
+			"NOVA animação ACELERAÇÃO (Talento): 1 s após a carta entrar em campo, 1,5 s de velocidade divertida — dashes zig-zag com PÓS-IMAGENS translúcidas da própria carta, linhas de velocidade, poeira cartoon e boom sônico com anel duplo, tudo contido no slot; som de zip-zip-vroom.",
+			"ASSASSINAR CONTIDO no espaço da carta (regra do dono): adaga menor (70 px), corte e metades separando no MÁXIMO 8 px no próprio lugar, pedaços pequenos voando baixo e perto (+ fumaça/anel/faíscas contidos, impacto igual à destruição padrão); nada cresce nem ocupa a tela.",
+			"SONS ESPECÍFICOS (nada de campainha): DESACELERAR = relógio com ponteiros girando RÁPIDO e DESACELERANDO (ticks 25 Hz -> 2 Hz + catraca + tock final); COMPRA = página de livro CURTA; INVOCAÇÃO = impacto pesado de pedra no instante da chegada; OVO = crackle/rangido de casca e choco com boom+asas (sem sino); CONGELAR/FORTALECER/ROUBO/ULTIMATE sem pings de sino.",
+			"Testes t_90–t_98 + smoke OK (t_98: saque 1,0 s/0,5 s, aceleração 1,5 s e Assassinar contido na área da carta); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.50.2",
 		"data": "2026-10-25",
@@ -95,20 +106,6 @@ const NOTES := [
 			"DESACELERAR (Campeao e Talento) refeito com o SPRITE SHEET do relogio arcano do dono (20 frames: materializa, ponteiros para tras, vortice de tempo, dissolve): aparece por 2,0 s sobre o campo adversario UM POUCO MAIOR que uma carta, contido na linha adversaria, com anel runico local, ticks e areia de tempo.",
 			"Assets antigos das animacoes substituidas foram removidos do projeto (ovo/mordida/relogio da 1.49.94 e anteriores) — o historico do git os preserva.",
 			"Novo teste de regressao t_95 (tamanhos/limites das 3 animacoes: ovo no slot, serpente <= carta, relogio > carta e contido; mordida origem->alvo na Tela de Combate com veneno no fim); pack web reexportado — Ctrl+F5.",
-		],
-	},
-	{
-		"ver": "1.49.94",
-		"data": "2026-10-24",
-		"mudancas": [
-			"DIREÇÃO DE ARTE NOVA (pintura digital semi-3D, referência Hearthstone): todos os assets de animação criados agora (ovo, mandíbula, relógio) são arte pintada sobre fundo preto com blend aditivo — nunca cartoon, nunca fotorrealista.",
-			"PESADELO da IA não abre mais no topo/esquerda da tela: o cone de fantasmas desce do centro da tela direto sobre o campo do jogador afetado; guarda anti-duplicata garante UM cone por invocação.",
-			"INVOCAR DRAGÃO refeito com o MESMO roteiro: 5 estados pintados do ovo (inteiro -> fissuras finas -> fissuras fundas com feixes -> casca explodindo -> casca aberta) + tremor crescente com squash&stretch, poeira, anel rúnico no chão, lascas, explosão, anel de choque e pilar de energia.",
-			"NUNCA mais texto amarelo/redundante de status sobre a carta do campeão em campo: BARREIRA/ENVENENADO/CHAMAS/FÚRIA/PRESO/SILENCIADO/ENFEITICADO são comunicados SOMENTE pelos ícones no canto superior direito (pilha por ordem de aquisição) e pelos detalhes no zoom.",
-			"BARREIRA sem o painel pulsante sobre a carta (Campeões e Talento): o status virou ícone na pilha do canto (mesma linguagem da 1.49.91); os detalhes continuam no zoom da carta.",
-			"MORDIDA VENENOSA NOVA sem cobra: uma MANDÍBULA ESPECTRAL DE PRESAS venenosas (4 frames pintados) abre sobre o alvo, dá o BOTE em 0,12 s com clarão, anel, marcas de presa e respingos de veneno, treme cravada escorrendo veneno e dissolve em névoa tóxica.",
-			"NOVA animação DESACELERAR (Campeão e Talento): 0,5 s após a carta entrar em campo, um RELÓGIO MÁGICO de fantasia (bronze, runas, cristal ciano — nada moderno) aparece por 2,0 s sobre o campo adversário com ponteiros VOLTANDO PARA TRÁS em ticks, ondas temporais em câmera lenta e areia rúnica.",
-			"Novo teste de regressão t_94 (pesadelo da IA sem duplicata no topo + campo afetado; sem texto de status; barreira como ícone; VFX ovo/mordida/relógio rodando headless); pack web reexportado — Ctrl+F5.",
 		],
 	},
 	{

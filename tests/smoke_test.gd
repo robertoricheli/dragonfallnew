@@ -7,7 +7,7 @@ var _rules_ok := true
 
 func _ready() -> void:
 	print("== DRAGONFALL SMOKE TEST ==")
-	_rules_ok = _test_rules()
+	_rules_ok = await _test_rules()
 	_rules_ok = _test_targeting() and _rules_ok
 	_test_ui()
 
@@ -18,6 +18,8 @@ func _test_rules() -> bool:
 	var logs := [0]
 	st.log_msg.connect(func(_t): logs[0] += 1)
 	st.setup(CardDB.HEROES[0], CardDB.HEROES[1])
+	# (1.50.3) o saque livre do 1º turno agora chega 1,0 s após o início
+	await get_tree().create_timer(1.2).timeout
 	assert(st.players[0]["hand"].size() == 5)  # 4 iniciais + saque do 1º turno
 	assert(st.players[1]["hand"].size() == 4)
 	assert(st.players[0]["deck"].size() == 20 - 5)
@@ -115,6 +117,8 @@ func _test_ui() -> void:
 	add_child(b)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	# (1.50.3) aguarda o saque livre atrasado do 1º turno
+	await get_tree().create_timer(1.2).timeout
 	print("ui: construída, mão do jogador = ", b.hand_views[0].size(), " views")
 	assert(b.hand_views[0].size() == 5)
 	assert(b.hand_views[1].size() == 4)

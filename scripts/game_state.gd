@@ -209,7 +209,16 @@ func start_turn(pi: int) -> void:
 			p["skip_draw"] = false
 			log_msg.emit("Pesadelo: %s não comprou carta neste turno!" % p["name"])
 		else:
-			draw_cards(pi, 1)
+			# (1.50.3) SAQUE LIVRE com atraso: 1,0 s no início da partida;
+			# 0,5 s após um jogador passar a vez (demais turnos).
+			var delay: float = 1.0 if turn_number <= 1 else 0.5
+			var st_tree := Engine.get_main_loop() as SceneTree
+			if st_tree == null:
+				draw_cards(pi, 1)
+			else:
+				st_tree.create_timer(delay).timeout.connect(func() -> void:
+					if winner == -1:
+						draw_cards(pi, 1))
 	turn_started.emit(pi)
 	sync_views.emit()
 	_check_winner()

@@ -933,6 +933,9 @@ func _land_summon(v: ChampionView, cold: bool, pi: int) -> void:
 	elif oe == "desacelerar":
 		# (1.49.94) relógio mágico no campo adversário 0,5 s após o pouso.
 		_desacelerar_sequence(pi, int(v.card["uid"]))
+	elif te == "aceleracao":
+		# (1.50.3) ACELERAÇÃO: animação de velocidade 1 s após entrar em campo.
+		_acelerar_sequence(pi, int(v.card["uid"]))
 	elif te == "desacelerarTalento":
 		# (1.49.94) Talento DESACELERAR: mesmo relógio mágico.
 		# (1.50.2) Talento só sai do campo 0,5 s após o fim da animação.
@@ -1913,6 +1916,27 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 		return
 	state.resolve_pesadelo()
 	_show_pesadelo_hero(foe)
+
+
+func _acelerar_sequence(pi: int, talent_uid: int = -1) -> void:
+	# (1.50.3) ACELERAÇÃO (Talento): 1 s após a carta entrar em campo, uma
+	# animação DIVERTIDA de velocidade (1,5 s): dashes com pós-imagens da
+	# carta, linhas de velocidade, poeira e boom sônico — contida no slot.
+	await get_tree().create_timer(1.0).timeout
+	if state == null or not is_inside_tree():
+		return
+	var v: ChampionView = champ_views.get(talent_uid) if champ_views.has(talent_uid) else extra_views.get(talent_uid)
+	if v == null or not is_instance_valid(v):
+		v = extra_views.get(talent_uid)
+	if v == null or not is_instance_valid(v):
+		return
+	var fx = load("res://scripts/vfx_acelerar.gd").new()
+	fx_layer.add_child(fx)
+	fx.setup(v)
+	Sfx.play("acelerar", v.global_position.x, 0.9)   # som DURANTE
+	await fx.finished
+	if talent_uid >= 0:
+		_talent_anim_until[talent_uid] = Time.get_ticks_msec()
 
 
 func _desacelerar_sequence(pi: int, talent_uid: int = -1) -> void:

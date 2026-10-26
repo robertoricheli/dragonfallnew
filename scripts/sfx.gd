@@ -32,6 +32,7 @@ const KEYS := {
 	"assassinar_slash": "res://assets/sfx/assassinar_slash.wav",
 	"assassinar_split": "res://assets/sfx/assassinar_split.wav",
 	"assassinar_shatter": "res://assets/sfx/assassinar_shatter.wav",
+	"acelerar": "res://assets/sfx/acelerar.wav",
 }
 
 const POOL := 10
