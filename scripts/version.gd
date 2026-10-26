@@ -4,9 +4,21 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.50.0"
+const CURRENT := "1.50.1"
 
 const NOTES := [
+	{
+		"ver": "1.50.1",
+		"data": "2026-10-25",
+		"mudancas": [
+			"INVOCAR DRAGÃO REFEITA SEM NENHUM ASSET: o ovo agora é PINTADO POR CÓDIGO em runtime (4 estados: casca teal com escamas e faixas rúnicas -> fissuras finas -> fissuras fundas com luz -> casca aberta com miolo de luz), no MESMO roteiro (materializa no slot, treme, racha, choca com pilar e faíscas, 2,0 s, Filhote no burst); os PNGs do ovo foram excluídos.",
+			"SONS DURANTE as animações (problema sério corrigido): Pesadelo, Desacelerar e Ovo tocavam 0,5 s ANTES do VFX existir — agora cada som dispara no instante em que a animação nasce na tela.",
+			"ASSASSINAR corrigido: a carta destruída NÃO cresce mais (metades e pedaços escalados para o tamanho real da carta) e a animação inicia MEIO SEGUNDO após a escolha do alvo (alvos Poder 1 continuam destacados em vermelho na mira).",
+			"SOM DE INVOCAÇÃO = IMPACTO puro no instante em que o campeão chega ao campo (baque profundo de pedra sem swish antes); SOM DE COMPRA = virar página de livro; SOM DE COMBATE = golpe de arma real (whoosh + clang seco + baque), sem sino/campainha.",
+			"Assets não usados excluídos (regra permanente): OVO_ARTE_P1..P4.png.",
+			"Testes t_90–t_97 + smoke OK (t_97 agora valida o delay de 0,5 s e que nada aparece antes); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.50.0",
 		"data": "2026-10-25",
@@ -98,16 +110,6 @@ const NOTES := [
 			"INVOCAR DRAGÃO: 0,5 s após o pouso um OVO DE DRAGÃO (arte pintada em 3 estados: inteiro, rachado com luz e chocando) aparece no slot do Filhote, treme, racha e CHOCA com explosão de luz e pilar de energia (1,5 s); só então o FILHOTE cai no campo.",
 			"PESADELO: 0,5 s após o pouso o campeão lança MUITOS FANTASMAS (estilo Boo, arte pintada) e FUMAÇA NEGRA em cone sobre o campo adversário (2 s); depois, fantasminhas e fumaça sobem em LOOP acima da moldura do herói afetado até o fim do turno dele (sem saque livre).",
 			"Segurança de motor: Defensor/Guardião/Pesadelo/Invocar Dragão ficam PENDENTES durante a animação e o flush de fim de turno aplica qualquer efeito restante (gameplay nunca espera a tela); novo teste t_93; pack web reexportado — Ctrl+F5.",
-		],
-	},
-	{
-		"ver": "1.49.92",
-		"data": "2026-10-23",
-		"mudancas": [
-			"CONGELADO sem cristal de gelo sobre a carta (Rajada Congelante e Zero Absoluto): após a explosão de gelo, o campeão fica SOMENTE com o ÍCONE de CONGELADO no canto superior direito, empilhado na ordem de aquisição; a tinta azulada e os detalhes no zoom continuam.",
-			"BAFORADA VENENOSA (Talento) agora abre MIRA VERDE-VENENO (o dono escolhe o Campeão adversário, como diz o texto da carta; a IA escolhe após 1,6 s) e ganhou a animação do SOPRO DO DRAGÃO VERDE: cometa de chamas verdes com núcleo incandescente, fumaça escura, brasas pontilhadas e feixe na cauda, voando da carta Talento até o alvo.",
-			"O ENVENENADO da Baforada só é aplicado NO FIM do sopro e aparece em campo SOMENTE como ícone no canto superior direito; SEM HONRA segue só com o ícone de caveira no canto e a morte especial preservada.",
-			"Novo teste de regressão t_92 (ícone do CONGELADO sem cristal + mira/veneno da Baforada + VFX do sopro + integração na Tela de Combate); pack web (index.pck) reexportado — no navegador, Ctrl+F5.",
 		],
 	},
 	{

@@ -50,8 +50,8 @@ func _t_ovo_slot() -> void:
 		flag["burst"] = true
 		flag["tb"] = (Time.get_ticks_msec() - t0) / 1000.0)
 	fx.setup(Vector2(640, 473))
-	var tw: float = fx.TEX_P1.get_width() * fx._scale
-	var th: float = fx.TEX_P1.get_height() * fx._scale
+	var tw: float = fx._egg_a.texture.get_width() * fx._scale
+	var th: float = fx._egg_a.texture.get_height() * fx._scale
 	if th < 90.0 or th > 140.0:
 		_fail("ovo: altura %.0f px (esperado 90..140)" % th)
 	if tw > 116.0:

@@ -1,13 +1,14 @@
 class_name OvoFX
 extends Node2D
-## (1.49.99) HABILIDADE/CARTA TALENTO INVOCAR DRAGÃO — REFEITA DO ZERO com a
-## identidade visual da BOLA DE FOGO/MORDIDA (arte pintada semi-3D estilo
-## Hearthstone + coreografia procedural): MESMO roteiro — o ovo materializa no
-## SLOT do Filhote (nunca sobre outra carta), treme cada vez mais forte,
-## racha com luz vazando (crossfade suave entre 4 estados pintados), e CHOCA:
-## explosão de luz, anel de choque, lascas com rotação, PILAR de energia e
-## chuva de faíscas — e o Filhote surge no burst (1,9 s), finished 2,0 s.
-## Contido no slot (<= 112 x 132 px). Uso: add_child(fx); fx.setup(centro_slot)
+## (1.50.1) HABILIDADE/CARTA TALENTO INVOCAR DRAGÃO — REFEITA SEM NENHUM
+## ASSET: o ovo é PINTADO POR CÓDIGO em runtime (4 estados gerados pixel a
+## pixel: casca teal com escamas e faixas rúnicas douradas -> fissuras finas
+## -> fissuras fundas com luz -> casca aberta com miolo de luz), no MESMO
+## roteiro: materializa no SLOT do Filhote com espiral de faíscas e anel
+## rúnico, treme cada vez mais forte (squash), racha com clarões, e CHOCA com
+## explosão, anel de choque, lascas, PILAR de energia e faíscas — contido no
+## slot (<= 112x132 px), 2,0 s; burst em 1,9 s -> o Filhote surge em seguida.
+## Uso: add_child(fx); fx.setup(centro_do_slot)
 
 signal burst
 signal finished
@@ -19,6 +20,8 @@ const MAX_H := 132.0
 const P2_AT := 0.70
 const P3_AT := 0.95
 const HATCH_AT := 1.40
+const TW := 112
+const TH := 140
 
 var _t := 0.0
 var _done := false
@@ -44,66 +47,138 @@ var _shards: Array = []
 var _dust: CPUParticles2D
 var _sparkles: CPUParticles2D
 
-const TEX_P1 := preload("res://assets/OVO_ARTE_P1.png")
-const TEX_P2 := preload("res://assets/OVO_ARTE_P2.png")
-const TEX_P3 := preload("res://assets/OVO_ARTE_P3.png")
-const TEX_P4 := preload("res://assets/OVO_ARTE_P4.png")
+static var _tex_cache: Array = []
 
 
+# ------------------------------------------------------------------ pintura
+static func _seg_dist(px: float, py: float, a: Array) -> float:
+	var x1: float = a[0]; var y1: float = a[1]; var x2: float = a[2]; var y2: float = a[3]
+	var dx := x2 - x1; var dy := y2 - y1
+	var L := dx * dx + dy * dy
+	var tt := clampf(((px - x1) * dx + (py - y1) * dy) / maxf(L, 1e-6), 0.0, 1.0)
+	return Vector2(px - (x1 + dx * tt), py - (y1 + dy * tt)).length()
+
+
+static func egg_tex(level: int) -> ImageTexture:
+	if _tex_cache.size() == 0:
+		for i in 4:
+			_tex_cache.append(_paint_egg(i))
+	return _tex_cache[level]
+
+
+static func _paint_egg(level: int) -> ImageTexture:
+	var img := Image.create(TW, TH, false, Image.FORMAT_RGBA8)
+	# fissuras por nível (segmentos)
+	var cracks: Array = []
+	if level >= 1:
+		cracks.append([56, 60, 48, 74]); cracks.append([48, 74, 58, 88]); cracks.append([62, 52, 70, 66])
+	if level >= 2:
+		cracks.append([58, 88, 50, 104]); cracks.append([70, 66, 64, 84]); cracks.append([44, 62, 38, 78])
+	for y in TH:
+		for x in TW:
+			var nx := (float(x) - 56.0) / 40.0
+			var ny := (float(y) - 74.0) / 56.0
+			var d := nx * nx + ny * ny
+			# miolo de luz do choco (nível 3): abertura no topo
+			var open_hit := false
+			if level >= 3 and d <= 1.0 and ny < -0.30:
+				open_hit = true
+			# fragmentos voando (nível 3)
+			var frag := false
+			if level >= 3:
+				for fr in [[24, 40], [88, 34], [16, 86], [94, 92]]:
+					if Vector2(x - fr[0], y - fr[1]).length() < 5.0:
+						frag = true
+			if d > 1.0 and not frag:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+				continue
+			var col: Color
+			if frag:
+				col = Color(0.10, 0.42, 0.36)
+			elif open_hit:
+				var g := clampf(1.0 - absf(ny + 0.55) * 3.0, 0.0, 1.0)
+				col = Color(1.0, 0.92, 0.55).lerp(Color(1.0, 1.0, 0.85), g)
+			else:
+				# casca: gradiente + padrão de escamas
+				var shade := 0.5 + 0.5 * sin(x * 0.52 + sin(y * 0.34) * 1.6) * cos(y * 0.21)
+				col = Color(0.04, 0.30, 0.26).lerp(Color(0.13, 0.58, 0.47), shade * 0.8 + 0.2 * (1.0 - ny * 0.5))
+				# faixas rúnicas douradas diagonais
+				var u := fmod(float(x) + float(y) * 0.55, 30.0)
+				if u < 6.0:
+					col = Color(0.82, 0.62, 0.24)
+					if fmod(float(x), 5.0) < 2.0:
+						col = Color(0.52, 0.36, 0.12)
+				# rim light quente à direita
+				var rim := clampf(nx * 0.8 - ny * 0.3, 0.0, 1.0)
+				col = col.lerp(Color(1.0, 0.78, 0.38), pow(rim, 2.2) * 0.55)
+				# sombra interna à esquerda
+				col = col.darkened(clampf(-nx * 0.35, 0.0, 0.35))
+			# fissuras com brilho
+			var cdist := 999.0
+			for c in cracks:
+				cdist = minf(cdist, _seg_dist(float(x), float(y), c))
+			if cdist < 1.3:
+				col = Color(1.0, 0.88, 0.45)
+			elif cdist < 3.0:
+				col = col.lerp(Color(1.0, 0.80, 0.35), (3.0 - cdist) / 1.7 * 0.7)
+			img.set_pixel(x, y, Color(col.r, col.g, col.b, 1.0))
+	return ImageTexture.create_from_image(img)
+
+
+# ------------------------------------------------------------------ setup
 func setup(at: Vector2) -> void:
 	position = at
 	z_index = 86
 	_started = true
-	_scale = minf(MAX_W / float(TEX_P1.get_width()), MAX_H / float(TEX_P1.get_height()))
+	_scale = minf(MAX_W / float(TW), MAX_H / float(TH))
 	_shadow = Sprite2D.new()
-	_shadow.texture = Vfx.radial("ovo4_shadow", 90, Color(0.0, 0.0, 0.0, 0.5), 0.1)
+	_shadow.texture = Vfx.radial("ovo5_shadow", 90, Color(0.0, 0.0, 0.0, 0.5), 0.1)
 	_shadow.scale = Vector2(1.0, 0.3)
 	_shadow.position = Vector2(0, 58)
 	_shadow.modulate = Color(1, 1, 1, 0)
 	add_child(_shadow)
 	_rune = Sprite2D.new()
-	_rune.texture = Vfx.ring("ovo4_rune", 105, Color(0.35, 0.95, 0.75, 0.8), 0.05)
+	_rune.texture = Vfx.ring("ovo5_rune", 105, Color(0.35, 0.95, 0.75, 0.8), 0.05)
 	_rune.material = Vfx.add_mat()
 	_rune.scale = Vector2(1.0, 0.34)
 	_rune.position = Vector2(0, 58)
 	_rune.modulate = Color(1, 1, 1, 0)
 	add_child(_rune)
 	_glow = Sprite2D.new()
-	_glow.texture = Vfx.radial("ovo4_glow", 140, Color(1.0, 0.78, 0.32, 0.65), 0.1)
+	_glow.texture = Vfx.radial("ovo5_glow", 140, Color(1.0, 0.78, 0.32, 0.65), 0.1)
 	_glow.material = Vfx.add_mat()
 	_glow.modulate = Color(1, 1, 1, 0)
 	_glow.position = Vector2(0, 6)
 	add_child(_glow)
-	# dois sprites para CROSSFADE entre estados pintados
 	_egg_a = Sprite2D.new()
-	_egg_a.texture = TEX_P1
+	_egg_a.texture = egg_tex(0)
 	_egg_a.centered = true
 	_egg_a.scale = Vector2(_scale, _scale)
 	_egg_a.modulate = Color(1, 1, 1, 0)
 	add_child(_egg_a)
 	_egg_b = Sprite2D.new()
-	_egg_b.texture = TEX_P1
+	_egg_b.texture = egg_tex(0)
 	_egg_b.centered = true
 	_egg_b.scale = Vector2(_scale, _scale)
 	_egg_b.modulate = Color(1, 1, 1, 0)
 	add_child(_egg_b)
 	_rays = Sprite2D.new()
-	_rays.texture = Vfx.ring("ovo4_rays", 220, Color(1.0, 0.85, 0.45, 0.8), 0.03)
+	_rays.texture = Vfx.ring("ovo5_rays", 220, Color(1.0, 0.85, 0.45, 0.8), 0.03)
 	_rays.material = Vfx.add_mat()
 	_rays.modulate = Color(1, 1, 1, 0)
 	add_child(_rays)
 	_flash = Sprite2D.new()
-	_flash.texture = Vfx.radial("ovo4_flash", 150, Color(1.0, 0.92, 0.60, 0.9), 0.22)
+	_flash.texture = Vfx.radial("ovo5_flash", 150, Color(1.0, 0.92, 0.60, 0.9), 0.22)
 	_flash.material = Vfx.add_mat()
 	_flash.modulate = Color(1, 1, 1, 0)
 	add_child(_flash)
 	_ring = Sprite2D.new()
-	_ring.texture = Vfx.ring("ovo4_ring", 115, Color(1.0, 0.88, 0.50, 0.85), 0.06)
+	_ring.texture = Vfx.ring("ovo5_ring", 115, Color(1.0, 0.88, 0.50, 0.85), 0.06)
 	_ring.material = Vfx.add_mat()
 	_ring.modulate = Color(1, 1, 1, 0)
 	add_child(_ring)
 	_beam = Sprite2D.new()
-	_beam.texture = Vfx.radial("ovo4_beam", 110, Color(1.0, 0.88, 0.50, 0.85), 0.12)
+	_beam.texture = Vfx.radial("ovo5_beam", 110, Color(1.0, 0.88, 0.50, 0.85), 0.12)
 	_beam.material = Vfx.add_mat()
 	_beam.scale = Vector2(0.6, 0.1)
 	_beam.modulate = Color(1, 1, 1, 0)
@@ -136,7 +211,7 @@ func setup(at: Vector2) -> void:
 			"sc": randf_range(0.7, 1.4),
 		})
 	_dust = CPUParticles2D.new()
-	_dust.texture = Vfx.radial("ovo4_dust", 36, Color(0.55, 0.45, 0.35, 0.5), 0.05)
+	_dust.texture = Vfx.radial("ovo5_dust", 36, Color(0.55, 0.45, 0.35, 0.5), 0.05)
 	_dust.emitting = false
 	_dust.amount = 20
 	_dust.lifetime = 0.55
@@ -171,7 +246,7 @@ func _set_state(idx: int) -> void:
 		return
 	_state = idx
 	_state_at = _t
-	var tex: Texture2D = [TEX_P1, TEX_P2, TEX_P3, TEX_P4][idx]
+	var tex: Texture2D = egg_tex(idx)
 	var incoming: Sprite2D = _egg_b if _showing_a else _egg_a
 	incoming.texture = tex
 	_showing_a = not _showing_a
@@ -182,13 +257,11 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	var t := _t
-	# ============ materialização (0 .. 0.35)
 	var mk: float = clampf(t / 0.35, 0.0, 1.0)
 	if _state < 0:
 		_set_state(0)
 	var base_a: float = Ease.out_cubic(mk)
 	var sc: float = _scale * lerpf(0.55, 1.0, Ease.out_cubic(mk))
-	# ============ tremor crescente (0.35 .. 1.40)
 	var tremor: float = clampf((t - 0.35) / 1.0, 0.0, 1.0) * (1.0 if t < HATCH_AT else 0.0)
 	var jx: float = randf_range(-1, 1) * 3.0 * tremor * tremor
 	var jy: float = randf_range(-1, 1) * 2.0 * tremor * tremor
@@ -197,41 +270,34 @@ func _process(delta: float) -> void:
 		e.scale = Vector2(sc * (2.0 - squash), sc * squash)
 		e.rotation = randf_range(-1, 1) * 0.04 * tremor * tremor
 		e.position = Vector2(jx, -4.0 + jy + sin(t * 3.1) * 2.0 * mk)
-	# estados pintados
 	if t >= HATCH_AT:
 		_set_state(3)
 	elif t >= P3_AT:
 		_set_state(2)
 	elif t >= P2_AT:
 		_set_state(1)
-	# crossfade entre estados (80 ms; a materialização usa o fade de 0,35 s)
 	var incoming: Sprite2D = _egg_a if _showing_a else _egg_b
 	var outgoing: Sprite2D = _egg_b if _showing_a else _egg_a
 	var fk: float = base_a if _state == 0 else clampf((t - _state_at) / 0.08, 0.0, 1.0)
 	incoming.modulate.a = fk
 	outgoing.modulate.a = (1.0 - fk) if _state > 0 else 0.0
-	# ============ chão / glow / runas
 	_shadow.modulate = Color(1, 1, 1, mk * 0.75)
 	_rune.modulate = Color(1, 1, 1, (sin(mk * PI) * 0.7 if t < 0.8 else 0.25 + 0.4 * tremor * absf(sin(t * 12.0))))
 	_rune.rotation += delta * 0.9
 	_glow.modulate = Color(1, 1, 1, mk * (0.3 + 0.15 * sin(t * 10.0)) + 0.45 * tremor)
-	# espiral de faíscas na materialização
 	for s in _swirl:
 		var n: Sprite2D = s["n"]
 		var a: float = float(s["a"]) + t * 7.0
 		var r: float = lerpf(80.0, 24.0, mk)
 		n.position = Vector2(cos(a) * r, -4.0 + sin(a) * r * 0.45)
 		n.modulate = Color(1, 1, 1, sin(mk * PI) * 0.9)
-	# lascas orbitando nas fissuras fundas
 	var orb_a: float = clampf((t - P3_AT) / 0.2, 0.0, 1.0) * (1.0 if t < HATCH_AT else 0.0)
 	for o in _orbit:
 		var n2: Sprite2D = o["n"]
 		var a2: float = float(o["a"]) + t * 4.5
 		n2.position = Vector2(cos(a2) * float(o["r"]), -4.0 + sin(a2) * float(o["r"]) * 0.5)
 		n2.modulate = Color(1, 1, 1, orb_a * 0.85)
-	# poeira do tremor
 	_dust.emitting = tremor > 0.3 and t < HATCH_AT
-	# feixes de luz das fissuras (P3)
 	if t >= P3_AT and t < HATCH_AT + 0.15:
 		var rk: float = clampf((t - P3_AT) / 0.2, 0.0, 1.0)
 		_rays.modulate = Color(1, 1, 1, rk * (0.45 + 0.35 * absf(sin(t * 18.0))))
@@ -239,7 +305,6 @@ func _process(delta: float) -> void:
 		_rays.scale = Vector2.ONE * (0.5 + rk * 0.4)
 	else:
 		_rays.modulate = Color(1, 1, 1, 0)
-	# ============ CHOCO (HATCH_AT)
 	if t >= HATCH_AT:
 		var hk: float = clampf((t - HATCH_AT) / 0.22, 0.0, 1.0)
 		var hf: float = clampf(1.0 - (t - HATCH_AT - 0.22) / 0.3, 0.0, 1.0)

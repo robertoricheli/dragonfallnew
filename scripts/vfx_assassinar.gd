@@ -98,6 +98,9 @@ func _mk_part(rect: Rect2) -> Sprite2D:
 	# via offset negativo — rotação das metades/pedaços ao redor do próprio centro.
 	s.offset = -rect.size / 2.0
 	s.position = _pos - _size / 2.0 + rect.position + rect.size / 2.0
+	# (1.50.1) a textura baked é maior que a carta em campo: escala as partes
+	# para o TAMANHO REAL da carta (a carta NÃO cresce durante a morte).
+	s.scale = Vector2(_size.x / float(_face_tex.get_width()), _size.y / float(_face_tex.get_height()))
 	s.modulate = Color(1, 1, 1, 0)
 	add_child(s)
 	return s

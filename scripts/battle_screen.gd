@@ -1844,8 +1844,7 @@ func _guardiao_sequence(pi: int, self_uid: int) -> void:
 
 
 func _ovo_sequence(pi: int) -> void:
-	Sfx.play("ovo_crackle", 640.0, 0.9)
-	# (1.49.93) INVOCAR DRAGÃO: 0,5 s após o pouso, o OVO aparece no slot onde o
+	# (1.50.1) INVOCAR DRAGÃO: 0,5 s após o pouso, o OVO aparece no slot onde o
 	# Filhote vai ficar, treme, racha e CHOCA com luz (1,5 s); no burst de luz o
 	# FILHOTE DE DRAGÃO é invocado e cai no campo sobre o brilho que esmaece.
 	await get_tree().create_timer(0.5).timeout
@@ -1866,6 +1865,7 @@ func _ovo_sequence(pi: int) -> void:
 	var fx = load("res://scripts/vfx_ovo.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(center)
+	Sfx.play("ovo_crackle", center.x, 0.9)   # (1.50.1) som DURANTE a animação
 	fx.burst.connect(func() -> void:
 		Sfx.play("ovo_hatch", center.x, 1.0)
 		if state != null and is_inside_tree():
@@ -1887,7 +1887,6 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 	if _pesadelo_running.has(uid):
 		return
 	_pesadelo_running[uid] = true
-	Sfx.play("pesadelo", 640.0, 0.85)
 	await get_tree().create_timer(0.5).timeout
 	if state == null or not is_inside_tree():
 		_pesadelo_running.erase(uid)
@@ -1903,6 +1902,7 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 	var fx = load("res://scripts/vfx_pesadelo.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(src, dst)
+	Sfx.play("pesadelo", src.x, 0.85)   # (1.50.1) som DURANTE a animação
 	await fx.finished
 	_pesadelo_running.erase(uid)
 	if state == null or not is_inside_tree():
@@ -1925,6 +1925,7 @@ func _desacelerar_sequence(pi: int, _uid: int) -> void:
 	var fx = load("res://scripts/vfx_desacelerar.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(dst)
+	Sfx.play("desacelerar", dst.x, 0.9)   # (1.50.1) som DURANTE a animação
 	await fx.finished
 
 
@@ -1953,6 +1954,12 @@ func _assassinar_death(v: ChampionView) -> void:
 	# (1.49.99) orquestra a morte especial da ADAGA sobre a view (0,5 s de
 	# mira + corte + 2,0 s de metades/pedaços); a view é liberada pelo fx.
 	v.dying = true
+	# (1.50.1) a animação inicia 0,5 s APÓS a escolha do alvo (regra do dono)
+	await get_tree().create_timer(0.5).timeout
+	if not is_instance_valid(v) or not is_inside_tree():
+		if is_instance_valid(v):
+			v.queue_free()
+		return
 	var fx = load("res://scripts/vfx_assassinar.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(v)

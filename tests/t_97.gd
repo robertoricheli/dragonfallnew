@@ -104,7 +104,12 @@ func _t_assassinar() -> void:
 	await get_tree().create_timer(0.4).timeout
 	# destruição com reason "assassinar" (como o motor faz ao confirmar o alvo)
 	st.destroy_champion(1, tgt, 0, "assassinar", true)
+	# (1.50.1) a animação só inicia 0,5 s após a escolha
 	await get_tree().create_timer(0.3).timeout
+	for ch in b.fx_layer.get_children():
+		if ch is ASS:
+			_fail("assassinar: animação iniciou ANTES dos 0,5 s")
+	await get_tree().create_timer(0.45).timeout
 	var fx: Node = null
 	for ch in b.fx_layer.get_children():
 		if ch is ASS:
