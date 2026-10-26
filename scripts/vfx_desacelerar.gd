@@ -20,6 +20,7 @@ var _done := false
 var _started := false
 var _frame := -1
 var _scale := 1.0
+var _snd_played := false
 
 var _seq: Sprite2D
 var _rune: Sprite2D
@@ -84,6 +85,10 @@ func _process(delta: float) -> void:
 	_t += delta
 	var t := _t
 	var k: float = clampf(t / DUR, 0.0, 1.0)
+	# (1.50.3) o som começa JUNTO com o relógio visível e termina antes do fim
+	if t >= 0.25 and not _snd_played:
+		_snd_played = true
+		Sfx.play("desacelerar", position.x, 0.9)
 	var idx := mini(N_FRAMES - 1, int(k * N_FRAMES))
 	if idx != _frame:
 		var old := _frame

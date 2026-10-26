@@ -4,9 +4,23 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.50.3"
+const CURRENT := "1.50.4"
 
 const NOTES := [
+	{
+		"ver": "1.50.4",
+		"data": "2026-10-26",
+		"mudancas": [
+			"INVOCAÇÃO: som de impacto AINDA mais pesado (transiente + sub 50->20 Hz saturado + doble baque + detritos + rumble de poeira) no instante exato da chegada.",
+			"DESACELERAR: o som agora começa SOMENTE quando o relógio fica visível (0,25 s de animação) e termina ANTES do fim da animação (2,2 s de som em 2,6 s de VFX).",
+			"ASSASSINAR: as cartas da linha só se REORGANIZAM 0,5 s APÓS o fim da morte especial da adaga (antes deslizavam durante a animação).",
+			"GUARDIÃO: som de CHORUS CELESTIAL com vozes sopranas (formantes de 'ah' cantado em acorde C5-E5-G5-C6 com vibrato), breve — toca em cada pilar de luz de cada aliado.",
+			"NOVA animação CORROMPER (Habilidade e Talento): 0,5 s após a escolha, AURA NEGRA de 1,5 s envolve o campeão (vórtices contrarrotativos, névoa, partículas sugadas, carta escurecida) com som de medo/trevas; o status SEM HONRA só entra 0,5 s DEPOIS do fim da aura.",
+			"NOVA animação SOBREPUJAR: em combate com Poder igual, ao voltarem aos lugares o vencedor ganha ESCUDO dourado de 1,5 s e o perdedor tem destruição especial CONTIDA no slot: SOCOS (POPPY: estrelas de impacto, sacudidas e poeira) ou RAPIEIRA (A DUELISTA: 5 cortes finos com faíscas) por 1,5 s, e então a destrução padrão — sem mudar tamanho, sem sair do lugar.",
+			"Sons novos: corromper (drone + sussurros + tritono + batidas), punch, rapier e escudo; central Sfx com 30 chaves.",
+			"Testes t_90–t_99 + smoke OK (t_99: corromper pendente, reorg do assassinar, sobrepujar); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.50.3",
 		"data": "2026-10-25",
@@ -95,17 +109,6 @@ const NOTES := [
 			"DESACELERAR (Habilidade e Talento) agora usa o VÍDEO do dono: 78 frames recortados do fundo branco; o relógio arcano (170 px, um pouco maior que a carta) roda integralmente por 2,6 s sobre o campo adversário, contido na linha, com anel rúnico local, ticks e areia de tempo.",
 			"Recortes dos vídeos feitos com keying profissional: fundo branco virou alpha transparente por conectividade (brancos internos do glow preservados), bordas semi-transparentes com unblend — sem nenhum resquício de fundo branco em campo.",
 			"Assets das animações anteriores (sheets 1.49.95) removidos do projeto; teste t_95 reescrito (tamanhos/slot/delay/veneno); pack web reexportado — Ctrl+F5.",
-		],
-	},
-	{
-		"ver": "1.49.95",
-		"data": "2026-10-24",
-		"mudancas": [
-			"INVOCAR DRAGÃO com o SPRITE SHEET pintado do dono (20 frames: ovo aparece, racha, choca e vira luz): a sequencia roda SOMENTE sobre o slot onde o Filhote vai cair (nada de flash/pilar na tela inteira), com cadencia variavel, sombra, anel runico, tremor, clarao contido, lascas e faiscas locais.",
-			"MORDIDA VENENOSA refeita com a SERPENTE MAGICA VERDE pintada (arte do dono): ela NASCE da carta Campeao em campo, DESLIZA pelo campo em curva com ondulacao e rastro de vapores, mira uma pausa e da o BOTE cravando a mordida no alvo (clarao, anel, marcas de presa, respingos e poca de veneno); nunca maior que uma carta em campo; duracao 2,0 s.",
-			"DESACELERAR (Campeao e Talento) refeito com o SPRITE SHEET do relogio arcano do dono (20 frames: materializa, ponteiros para tras, vortice de tempo, dissolve): aparece por 2,0 s sobre o campo adversario UM POUCO MAIOR que uma carta, contido na linha adversaria, com anel runico local, ticks e areia de tempo.",
-			"Assets antigos das animacoes substituidas foram removidos do projeto (ovo/mordida/relogio da 1.49.94 e anteriores) — o historico do git os preserva.",
-			"Novo teste de regressao t_95 (tamanhos/limites das 3 animacoes: ovo no slot, serpente <= carta, relogio > carta e contido; mordida origem->alvo na Tela de Combate com veneno no fim); pack web reexportado — Ctrl+F5.",
 		],
 	},
 	{

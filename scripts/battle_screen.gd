@@ -109,6 +109,10 @@ var _pesadelo_hero_node: Node2D = null
 var _pesadelo_hero_pi := -1
 var _pesadelo_turn_seen := false
 var _pesadelo_running := {}   # (1.49.94) uid -> cone em andamento (anti-duplicata)
+var _assassinar_hold := {}      # (1.50.4) pi -> mortes p/ adaga em curso (segura o re-layout)
+var _sobre_hold := {}           # (1.50.4) uid -> destruição SOBREPUJAR segurando o padrão
+var _sobre_anim := {}           # (1.50.4) uid -> animação especial em curso
+var _sobre_pending := {}        # (1.50.4) uid perdedor -> "socos"|"rapier"
 
 
 func _ready() -> void:
@@ -595,6 +599,7 @@ func _start_match() -> void:
 	state.fx_forja.connect(_on_fx_forja)
 	state.fx_congelar.connect(_on_fx_congelar)
 	state.fx_mordida.connect(_on_fx_mordida)
+	state.fx_corromper.connect(_on_fx_corromper)
 	state.fx_baforada.connect(_on_fx_baforada)
 	state.fx_enabled = true
 	state.destroy_style.connect(_on_destroy_style)
@@ -988,12 +993,15 @@ func _on_field_changed(pi: int) -> void:
 		alive[int(c["uid"])] = true
 	for uid in champ_views.keys():
 		var v: ChampionView = champ_views[uid]
-		if v.owner_pi == pi and not alive.has(int(uid)) and not v.dying and not _pending_desonra.has(int(uid)):
+		if v.owner_pi == pi and not alive.has(int(uid)) and not v.dying and not _pending_desonra.has(int(uid)) and not _sobre_anim.has(int(uid)):
 			champ_views.erase(uid)
 			_animate_view_exit(v)
 	for c in field:
 		if not champ_views.has(int(c["uid"])):
 			_on_champion_summoned(pi, c)
+	# (1.50.4) ASSASSINAR: as cartas só reorganizam 0,5 s APÓS a morte especial
+	if int(_assassinar_hold.get(pi, 0)) > 0:
+		return
 	if Time.get_ticks_msec() - _last_destroy_ms < 150:
 		# (1.49.91) SEM HONRA: a reorganização dos aliados NÃO acontece aqui —
 		# ela roda 0,5 s APÓS o fim da morte especial (_reorg_after_desonra).
@@ -1007,6 +1015,10 @@ func _on_field_changed(pi: int) -> void:
 
 
 func _layout_field(pi: int) -> void:
+	# (1.50.4) ASSASSINAR: nenhuma reorganização enquanto a morte especial
+	# da adaga estiver em curso (ela mesma re-layouta 0,5 s após o fim).
+	if int(_assassinar_hold.get(pi, 0)) > 0:
+		return
 	# Linha única sempre centralizada + REGRA DE ESPAÇO (nunca excede a metade).
 	# Campeões + Talentos em exibição temporária compartilham a linha.
 	var field: Array = state.players[pi]["field"]
@@ -1153,10 +1165,22 @@ func _on_champion_destroyed(pi: int, card: Dictionary, reason: String, gave_vp: 
 		if reason == "assassinar":
 			# (1.49.99) ASSASSINAR: morte ESPECIAL — adaga corta a carta ao
 			# meio e ela se desfaz em pedaços (2,0 s entre corte e destruição).
-			_assassinar_death(v)
+			# (1.50.4) o re-layout da linha espera o fim da morte + 0,5 s.
+			_assassinar_hold[pi] = int(_assassinar_hold.get(pi, 0)) + 1
+			_assassinar_death(v, pi)
 			_last_destroy_ms = Time.get_ticks_msec()
 			if gave_vp:
 				_spawn_toast("+PV para %s!" % state.players[1 - pi]["name"])
+			_refresh_counts()
+			return
+		if _sobre_hold.has(uid):
+			# (1.50.4) segura a destruição padrão: o perdedor volta ao lugar e
+			# só então recebe a animação especial de SOBREPUJAR. A view fica
+			# registrada (com guarda) até o fim da animação especial.
+			_sobre_hold.erase(uid)
+			_sobre_anim[uid] = true
+			champ_views[uid] = v
+			_last_destroy_ms = Time.get_ticks_msec()
 			_refresh_counts()
 			return
 		if _death_style.has(uid):
@@ -1953,7 +1977,6 @@ func _desacelerar_sequence(pi: int, talent_uid: int = -1) -> void:
 	var fx = load("res://scripts/vfx_desacelerar.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(dst)
-	Sfx.play("desacelerar", dst.x, 0.9)   # (1.50.1) som DURANTE a animação
 	await fx.finished
 	if talent_uid >= 0:
 		_talent_anim_until[talent_uid] = Time.get_ticks_msec()
@@ -1980,7 +2003,84 @@ func _clear_pesadelo_hero() -> void:
 	_pesadelo_turn_seen = false
 
 
-func _assassinar_death(v: ChampionView) -> void:
+func _sobre_sequence(winner_uid: int, loser_uid: int, style: String) -> void:
+	# (1.50.4) escudo dourado 1,5 s no vencedor + animação especial contida
+	# no perdedor; no fim, destruição padrão (estilhaços/fumaça/anel).
+	var wv: ChampionView = champ_views.get(winner_uid)
+	if wv != null and is_instance_valid(wv):
+		_fx_escudo(wv)
+	var lv: ChampionView = champ_views.get(loser_uid)
+	if lv == null or not is_instance_valid(lv):
+		_sobre_anim.erase(loser_uid)
+		return
+	var fx = load("res://scripts/vfx_sobre.gd").new()
+	fx_layer.add_child(fx)
+	fx.setup(lv, style)
+	await fx.finished
+	_sobre_anim.erase(loser_uid)
+	if not is_instance_valid(lv) or not is_inside_tree():
+		return
+	champ_views.erase(loser_uid)
+	var lpi: int = lv.owner_pi
+	var center := lv.global_position + lv.size * lv.scale / 2.0
+	_fx_shards(center, Color(0.85, 0.32, 0.26))
+	_fx_smoke(center)
+	_fx_ring(center, Color(1, 0.35, 0.25, 0.9), 26, 130, 0.5)
+	Sfx.play("destroy", center.x, 0.9)
+	lv.queue_free()
+	_layout_field(lpi)
+
+
+func _fx_escudo(v: ChampionView) -> void:
+	# (1.50.4) domo dourado de 1,5 s sobre o campeão com SOBREPUJAR.
+	var c := v.global_position + v.size * v.scale / 2.0
+	var dome := Sprite2D.new()
+	dome.texture = Vfx.radial("sob_dome", 150, Color(1.0, 0.82, 0.35, 0.5), 0.06)
+	dome.material = Vfx.add_mat()
+	dome.modulate = Color(1, 1, 1, 0)
+	dome.position = c
+	fx_layer.add_child(dome)
+	var rim := Sprite2D.new()
+	rim.texture = Vfx.ring("sob_rim", 150, Color(1.0, 0.88, 0.45, 0.9), 0.05)
+	rim.material = Vfx.add_mat()
+	rim.modulate = Color(1, 1, 1, 0)
+	rim.position = c
+	fx_layer.add_child(rim)
+	Sfx.play("escudo", c.x, 0.7)
+	var tw := dome.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(dome, "modulate:a", 0.75, 0.15)
+	tw.tween_property(rim, "modulate:a", 0.85, 0.15)
+	tw.chain().tween_interval(1.1)
+	tw.chain().tween_property(dome, "modulate:a", 0.0, 0.25)
+	tw.parallel().tween_property(rim, "modulate:a", 0.0, 0.25)
+	tw.chain().tween_callback(dome.queue_free)
+	tw.parallel().tween_callback(rim.queue_free)
+
+
+func _on_fx_corromper(pi: int, src_uid: int, target_uid: int) -> void:
+	# (1.50.4) CORROMPER: 0,5 s após a escolha, aura negra 1,5 s no aliado;
+	# o status SEM HONRA entra 0,5 s DEPOIS do fim da aura.
+	await get_tree().create_timer(0.5).timeout
+	if state == null or not is_inside_tree():
+		return
+	var v: ChampionView = champ_views.get(target_uid)
+	if v == null or not is_instance_valid(v):
+		state.resolve_corromper(target_uid)
+		return
+	var fx = load("res://scripts/vfx_corromper.gd").new()
+	fx_layer.add_child(fx)
+	fx.setup(v)
+	Sfx.play("corromper", v.global_position.x, 0.9)
+	await fx.finished
+	await get_tree().create_timer(0.5).timeout
+	if state != null and is_inside_tree():
+		state.resolve_corromper(target_uid)
+	if src_uid >= 0 and extra_views.has(src_uid):
+		_talent_anim_until[src_uid] = Time.get_ticks_msec()
+
+
+func _assassinar_death(v: ChampionView, pi: int) -> void:
 	# (1.49.99) orquestra a morte especial da ADAGA sobre a view (0,5 s de
 	# mira + corte + 2,0 s de metades/pedaços); a view é liberada pelo fx.
 	v.dying = true
@@ -1993,6 +2093,11 @@ func _assassinar_death(v: ChampionView) -> void:
 	var fx = load("res://scripts/vfx_assassinar.gd").new()
 	fx_layer.add_child(fx)
 	fx.setup(v)
+	await fx.finished
+	await get_tree().create_timer(0.5).timeout
+	_assassinar_hold[pi] = maxi(0, int(_assassinar_hold.get(pi, 0)) - 1)
+	if is_inside_tree():
+		_layout_field(pi)
 
 
 func _on_fx_mordida(pi: int, src_uid: int, target_uid: int) -> void:
@@ -2325,6 +2430,25 @@ func _do_combat(att_p: int, ai_idx: int, di: int) -> void:
 	ta.parallel().tween_property(av, "scale", Vector2(av.layout_scale * 1.14, av.layout_scale * 1.14), 0.3)
 	var td := _tween_arc(dv, d_tgt, 0.6, 18.0)
 	td.parallel().tween_property(dv, "scale", Vector2(dv.layout_scale * 1.1, dv.layout_scale * 1.1), 0.3)
+	# (1.50.4) SOBREPUJAR com Poder igual: o perdedor tem destruição especial
+	# (socos p/ POPPY, rapieira p/ A DUELISTA) e o vencedor ganha escudo 1,5 s.
+	var a_card: Dictionary = state.players[att_p]["field"][ai_idx]
+	var d_card: Dictionary = state.players[def_p]["field"][di]
+	var sob_a: bool = String(a_card.get("ability_name", "")) == "Sobrepujar" and not bool(a_card.get("silenced", false))
+	var sob_d: bool = String(d_card.get("ability_name", "")) == "Sobrepujar" and not bool(d_card.get("silenced", false))
+	var same_pow: bool = int(a_card.get("current_power", 0)) == int(d_card.get("current_power", 0))
+	var sob_winner := -1
+	var _wname_unused := ""
+	if same_pow and sob_a != sob_d:
+		var wname: String
+		if sob_a:
+			sob_winner = a_uid
+			_sobre_hold[d_uid] = true
+			_sobre_pending[d_uid] = "socos" if String(a_card.get("name", "")) == "POPPY" else "rapier"
+		else:
+			sob_winner = d_uid
+			_sobre_hold[a_uid] = true
+			_sobre_pending[a_uid] = "socos" if String(d_card.get("name", "")) == "POPPY" else "rapier"
 	await ta.finished
 	_fx_impact(mid)
 	await get_tree().create_timer(0.15).timeout
@@ -2351,6 +2475,18 @@ func _do_combat(att_p: int, ai_idx: int, di: int) -> void:
 			get_tree().create_timer(0.5).timeout.connect(func() -> void:
 				if is_instance_valid(self):
 					_finish_desonra(u))
+	# (1.50.4) SOBREPUJAR: de volta aos lugares -> escudo no vencedor +
+	# destruição especial contida no perdedor; destruição padrão no fim.
+	var loser := -1
+	if _sobre_pending.has(a_uid):
+		loser = a_uid
+	elif _sobre_pending.has(d_uid):
+		loser = d_uid
+	if loser != -1:
+		var style: String = String(_sobre_pending[loser])
+		_sobre_pending.erase(loser)
+		var winner: int = d_uid if loser == a_uid else a_uid
+		_sobre_sequence(winner, loser, style)
 	if state.winner == -1:
 		input_locked = (state.current == 1)
 	_refresh_buttons()

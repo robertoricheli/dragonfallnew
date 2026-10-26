@@ -28,6 +28,7 @@ signal fx_roubo(pi, foe_pi, uid)
 signal fx_forja(pi, source_uid)
 signal fx_congelar(pi, source_uid, target_uid)
 signal fx_mordida(pi, source_uid, target_uid)
+signal fx_corromper(pi, source_uid, target_uid)
 signal fx_baforada(pi, source_uid, target_uid)
 ## (1.49.76) estilo de animação de destruição especial: "semhonra" | "recompensa" | ""
 signal destroy_style(uid, style)
@@ -59,6 +60,7 @@ var auto_target := false
 var pending_bola: Array = []
 var pending_fort: Array = []
 var pending_roubo: Array = []
+var pending_corromper: Array = []
 var pending_forja: Array = []
 # (1.49.93) habilidades de entrada ANIMADAS: o efeito real só aplica quando a
 # Tela de Combate termina a respectiva animação (resolve_defensor/guardiao/
@@ -234,6 +236,10 @@ func end_turn() -> void:
 		for e in pending_bola.duplicate():
 			if Time.get_ticks_msec() - int(e.get("ms", 0)) > 3500:
 				resolve_bola(int(e["uid"]))
+	if not pending_corromper.is_empty():
+		for e in pending_corromper.duplicate():
+			if Time.get_ticks_msec() - int(e.get("ms", 0)) > 4000:
+				resolve_corromper(int(e["uid"]))
 	if not pending_fort.is_empty():
 		# (1.49.70) segurança: buffs de Fortalecer pendentes há mais de 3,5 s
 		# (a animação de 2 s inteira já passou) são aplicados agora.
@@ -1122,7 +1128,7 @@ func _begin_or_resolve_target(pi: int, card: Dictionary, effect: String, source_
 			elif effect.begins_with("fortalecer"):
 				_apply_fortalecer(pi, source_uid, t)
 			else:
-				_apply_corromper(pi, t)
+				_apply_corromper(pi, t, source_uid)
 		return
 	var cands: Array = []
 	for c in pool:
@@ -1175,7 +1181,7 @@ func confirm_targeting(uid: int) -> void:
 	elif String(targeting_effect).begins_with("fortalecer"):
 		_apply_fortalecer(pi, src, t)
 	else:
-		_apply_corromper(pi, t)
+		_apply_corromper(pi, t, src)
 
 
 func _apply_fortalecer(pi: int, source_uid: int, t: Dictionary) -> void:
@@ -1374,10 +1380,30 @@ func _apply_mordida(pi: int, source_uid: int, t: Dictionary) -> void:
 		fx_mordida.emit(pi, source_uid, int(t["uid"]))
 
 
-func _apply_corromper(pi: int, t: Dictionary) -> void:
-	# (1.49.79) aplica o status SEM HONRA ao aliado escolhido (imediato)
-	t["corrupted"] = true
+func _apply_corromper(pi: int, t: Dictionary, src_uid: int = -1) -> void:
+	# (1.50.4) CORROMPER com animação: aura negra 1,5 s e o status SEM HONRA
+	# só entra 0,5 s DEPOIS do fim dela (a Tela de Combate chama resolve).
 	log_msg.emit("Corromper: destruir %s não dará PV." % t["name"])
+	if fx_enabled:
+		pending_corromper.append({"uid": int(t["uid"]), "ms": Time.get_ticks_msec()})
+		fx_corromper.emit(pi, src_uid, int(t["uid"]))
+		return
+	t["corrupted"] = true
+	sync_views.emit()
+
+
+func resolve_corromper(uid: int) -> void:
+	## (1.50.4) aplica SEM HONRA no fim da animação de Corromper.
+	var done: Array = []
+	for e in pending_corromper:
+		if int(e["uid"]) == uid:
+			done.append(e)
+	for e in done:
+		pending_corromper.erase(e)
+	for pi in 2:
+		for c in players[pi]["field"]:
+			if int(c["uid"]) == uid:
+				c["corrupted"] = true
 	sync_views.emit()
 
 
