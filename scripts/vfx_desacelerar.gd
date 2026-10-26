@@ -11,8 +11,8 @@ extends Node2D
 
 signal finished
 
-const DUR := 2.6
-const N_FRAMES := 60
+const DUR := 5.0
+const N_FRAMES := 75
 const HEIGHT := 170.0        # px em campo (> 140 da carta, contido na linha)
 
 var _t := 0.0
@@ -32,7 +32,7 @@ var _frames: Array = []
 
 func _init() -> void:
 	for i in N_FRAMES:
-		_frames.append(load("res://assets/DESACELERAR_F%02d.png" % (i + 1)))
+		_frames.append(load("res://assets/DESAC2_F%02d.png" % (i + 1)))
 
 
 func setup(at: Vector2) -> void:
@@ -85,17 +85,17 @@ func _process(delta: float) -> void:
 	_t += delta
 	var t := _t
 	var k: float = clampf(t / DUR, 0.0, 1.0)
-	# (1.50.3) o som começa JUNTO com o relógio visível e termina antes do fim
-	if t >= 0.25 and not _snd_played:
+	# (1.50.6) o SOM DO VÍDEO é o som padrão da animação, desde o 1º frame
+	if not _snd_played:
 		_snd_played = true
-		Sfx.play("desacelerar", position.x, 0.9)
+		Sfx.play("desacelerar", position.x, 1.0)
 	var idx := mini(N_FRAMES - 1, int(k * N_FRAMES))
 	if idx != _frame:
 		var old := _frame
 		_frame = idx
 		_seq.texture = _frames[idx]
 		# clarão de tick a cada troca na fase central (ponteiros voltando)
-		if old >= 0 and idx >= 12 and idx <= 60 and idx % 4 == 0:
+		if old >= 0 and idx >= 10 and idx <= 68 and idx % 4 == 0:
 			_tick.modulate = Color(1, 1, 1, 0.35)
 	# flutuação suave + entrada/saída
 	var mk: float = clampf(t / 0.3, 0.0, 1.0)

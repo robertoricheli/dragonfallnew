@@ -16,21 +16,21 @@ func _fail(msg: String) -> void:
 
 func _ready() -> void:
 	print("== T100 (1.50.5) ==")
-	_t_sfx31()
+	_t_sfx29()
 	await _t_bolhas()
 	await _t_rapidez()
 	print("== T100 %s ==" % ("OK" if _ok else "FALHOU"))
 	get_tree().quit(0 if _ok else 1)
 
 
-func _t_sfx31() -> void:
+func _t_sfx29() -> void:
 	var sfx := get_node_or_null("/root/Sfx")
-	if sfx == null or (sfx.KEYS as Dictionary).size() != 31:
-		_fail("Sfx: %d chaves (esperado 31)" % (0 if sfx == null else (sfx.KEYS as Dictionary).size()))
+	if sfx == null or (sfx.KEYS as Dictionary).size() != 29:
+		_fail("Sfx: %d chaves (esperado 29)" % (0 if sfx == null else (sfx.KEYS as Dictionary).size()))
 	elif sfx._streams.get("bolhas") == null:
 		_fail("Sfx: som bolhas ausente")
 	else:
-		print("SFX: 31 chaves (bolhas inclusa): OK")
+		print("SFX: 29 chaves (bolhas + vídeos): OK")
 
 
 func _card(st: GameState, nm: String, oe: String, pi: int = 0) -> Dictionary:
@@ -110,7 +110,7 @@ func _t_rapidez() -> void:
 	var guard := 0
 	while guard < 260:
 		for ch in b.fx_layer.get_children():
-			if ch.get_script() != null and String(ch.get_script().resource_path).ends_with("vfx_acelerar.gd"):
+			if ch.get_script() != null and String(ch.get_script().resource_path).ends_with("vfx_rapidez.gd"):
 				seen = true
 		if seen:
 			break

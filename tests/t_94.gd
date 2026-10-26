@@ -102,7 +102,7 @@ func _run_fx(scr: GDScript, args: Array, expect_burst: bool) -> bool:
 	else:
 		fx.setup(args[0])
 	var t0 := Time.get_ticks_msec()
-	while not flag["done"] and Time.get_ticks_msec() - t0 < 4000:
+	while not flag["done"] and Time.get_ticks_msec() - t0 < 6500:
 		await get_tree().process_frame
 	if not flag["done"]:
 		_fail("%s não terminou (finished)" % scr.resource_path)
@@ -188,10 +188,10 @@ func _t_battle_desacelerar() -> void:
 	# efeito de jogo continua aplicado + relógio some após o vídeo (2,6 s)
 	if not bool(st.players[1]["skip_next_action"]):
 		_fail("desacelerar: adversário sem skip_next_action")
-	await get_tree().create_timer(3.1).timeout
+	await get_tree().create_timer(5.6).timeout
 	for ch in b.fx_layer.get_children():
 		if ch is DES:
-			_fail("relógio DESACELERAR não sumiu após o vídeo")
+			_fail("relógio DESACELERAR não sumiu após o vídeo (5,0 s)")
 			break
 	b.queue_free()
 	print("DESACELERAR: relógio 2 s no campo adversário + efeito: OK")

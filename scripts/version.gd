@@ -4,9 +4,23 @@ class_name GameVersion
 ## - a aba NOTAS deve ser atualizada JUNTO com cada atualização do jogo;
 ## - somente as 10 ÚLTIMAS atualizações ficam listadas em Notas.
 
-const CURRENT := "1.50.5"
+const CURRENT := "1.50.6"
 
 const NOTES := [
+	{
+		"ver": "1.50.6",
+		"data": "2026-10-26",
+		"mudancas": [
+			"RAPIDEZ REFEITA (Habilidade): 1 s após entrar em campo, 1,5 s DIVERTIDOS — agachada de partida com poeira, 6 pós-imagens da carta acendendo em ÓRBITA (flipbook de movimento), anel de velocidade tracejado girando, raios zig-zag, saltinhos elásticos e pose final com starburst + confete + boom sônico.",
+			"DESACELERAR com o NOVO vídeo do dono: só o RELÓGIO recortado (75 frames do fundo branco) tocando no ritmo natural (5,0 s), e o SOM DO VÍDEO é agora o som padrão da animação (extraído do mp4).",
+			"INVOCAR DRAGÃO com o NOVO vídeo do dono: só o OVO CHOCAANDO (67 frames recortados + vinheta), mapeado em 2,0 s no slot do Filhote; SOM atual mantido (crackle + hatch), sem usar o áudio do vídeo.",
+			"ASSASSINAR REFEITO com os vídeos do dono: VEGA = adaga cortando (ASSASSINAR 1, 3,69 s) e MIRA OCULTA = mira mirando/atirando (ASSASSINAR 2, 2,40 s), SOBRE o campeão afetado, com o SOM DE CADA VÍDEO; após o vídeo, a destruição PADRÃO da carta acontece; carta nunca muda de tamanho.",
+			"SOBREPUJAR: final trocado pelos vídeos do dono — A DUELISTA = espada cortando (SOBREPUJAR 1) e POPPY = socos atingindo (SOBREPUJAR 2), sobre o perdedor, e então a destruição PADRÃO; reorganização da linha só 0,5 s após o fim.",
+			"BOLHAS em MÃO: campeões da mão com o status agora mostram o ÍCONE de bolha no canto da carta enquanto o efeito estiver ativo.",
+			"Sons: extraídos dos vídeos (desacelerar, assassinar_vega, assassinar_mira); central Sfx com 29 chaves.",
+			"Testes t_90–t_100 + smoke OK (t_97/t_98/t_99 atualizados aos novos fluxos de vídeo); pack web reexportado — Ctrl+F5.",
+		],
+	},
 	{
 		"ver": "1.50.5",
 		"data": "2026-10-26",
@@ -101,17 +115,6 @@ const NOTES := [
 			"OVO DO DRAGÃO (Habilidade e Talento) com o vídeo NOVO do dono ('OVO NOVO', 71 frames recortados do fundo preto): e agora a linha ABRE o slot do Filhote ANTES do ovo aparecer (quem está em campo desliza 0,25 s para os slots da linha de n+1) — o ovo NUNCA mais aparece sobre a carta de quem usou; 2,0 s e Filhote imediato após o fim.",
 			"DEFENSOR: o 2º círculo (rodas de runa) subiu da parte de baixo para o CENTRO da carta (regra do dono); o domo/aro ao redor da carta permanece intocado.",
 			"Novo teste t_96 (Sfx com 22 sons + play headless; slot do ovo livre a >= 100 px do caster; runas do defensor no centro); pack web reexportado — Ctrl+F5.",
-		],
-	},
-	{
-		"ver": "1.49.97",
-		"data": "2026-10-25",
-		"mudancas": [
-			"INVOCAR DRAGÃO (Habilidade E Carta Talento) com o NOVO vídeo do dono ('OVO DE DRAGÃO', fundo PRETO): 67 frames recortados com keying profissional por conectividade — NADA do fundo preto aparece; pretos internos da arte preservados; bordas semi-transparentes com unblend; vinheta suave dissolve as lascas laterais.",
-			"O ovo aparece SOMENTE no slot do Filhote (<= 112 px de largura, <= 140 px de altura): NUNCA em cima do campeão que usou a habilidade, nem encostando nele; duração 2,0 s e IMMEDIATAMENTE após o fim do vídeo o Filhote surge em campo.",
-			"DESACELERAR (Habilidade e Talento) com o NOVO vídeo do dono (fundo PRETO): 60 frames do relógio arcano com engrenagens e vórtice de tempo, recortados sem nenhum resquício de fundo; 2,6 s sobre o campo adversário, um pouco maior que uma carta, contido na linha.",
-			"MORDIDA VENENOSA mantida como na 1.49.96 (vídeo recortado do fundo branco, 0,5 s após o alvo, menor que a carta).",
-			"Testes t_90–t_95 + smoke OK (t_95 valida 67/60 frames, largura do ovo <= 116 px e relógio > carta); pack web reexportado — Ctrl+F5.",
 		],
 	},
 	{

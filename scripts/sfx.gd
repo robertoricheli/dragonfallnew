@@ -28,16 +28,14 @@ const KEYS := {
 	"forja": "res://assets/sfx/forja.wav",
 	"roubo": "res://assets/sfx/roubo.wav",
 	"ultimate": "res://assets/sfx/ultimate.wav",
-	"assassinar_mark": "res://assets/sfx/assassinar_mark.wav",
-	"assassinar_slash": "res://assets/sfx/assassinar_slash.wav",
-	"assassinar_split": "res://assets/sfx/assassinar_split.wav",
-	"assassinar_shatter": "res://assets/sfx/assassinar_shatter.wav",
 	"acelerar": "res://assets/sfx/acelerar.wav",
 	"corromper": "res://assets/sfx/corromper.wav",
 	"punch": "res://assets/sfx/punch.wav",
 	"rapier": "res://assets/sfx/rapier.wav",
 	"escudo": "res://assets/sfx/escudo.wav",
 	"bolhas": "res://assets/sfx/bolhas.wav",
+	"assassinar_vega": "res://assets/sfx/assassinar_vega.wav",
+	"assassinar_mira": "res://assets/sfx/assassinar_mira.wav",
 }
 
 const POOL := 10

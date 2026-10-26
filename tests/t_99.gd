@@ -99,7 +99,7 @@ func _t_assassinar_reorg() -> void:
 	await get_tree().create_timer(1.5).timeout
 	if vv2.position.distance_to(pos0) > 1.0:
 		_fail("assassinar: linha reorganizou DURANTE a morte especial")
-	await get_tree().create_timer(3.0).timeout
+	await get_tree().create_timer(5.5).timeout
 	if vv2.position.distance_to(pos0) < 1.0:
 		_fail("assassinar: linha NÃO reorganizou após a morte + 0,5 s")
 	b.queue_free()
@@ -133,7 +133,7 @@ func _t_sobrepujar() -> void:
 		guard += 1
 	if not seen_sob:
 		_fail("sobrepujar: animação especial (socos) não apareceu")
-	await get_tree().create_timer(2.5).timeout
+	await get_tree().create_timer(4.5).timeout
 	var foe_alive := false
 	for c in st.players[1]["field"]:
 		if int(c["uid"]) == int(foe["uid"]):

@@ -124,18 +124,16 @@ func _t_assassinar_contido() -> void:
 		_fail("assassinar: fx não apareceu 0,5 s após a escolha")
 		b.queue_free()
 		return
-	# durante metades + estilhaços: tudo DENTRO da área da carta (+40 px)
-	for _k in 40:
+	# (1.50.6) o overlay do vídeo fica CENTRADO na carta e a carta não muda
+	# de tamanho durante toda a animação especial
+	var vt2: ChampionView = fx._view
+	var sc0: Vector2 = vt2.scale
+	for _k in 30:
 		await get_tree().process_frame
-		for h in fx._halves:
-			var n: Node = h["n"]
-			if is_instance_valid(n) and n.modulate.a > 0.05 and not bounds.has_point(n.global_position):
-				_fail("assassinar: metade fora da área da carta")
-		for sd in fx._shards:
-			var n2: Node = sd["n"]
-			if is_instance_valid(n2) and n2.modulate.a > 0.05 and not bounds.has_point(n2.global_position):
-				_fail("assassinar: pedaço fora da área da carta")
-				break
+		if is_instance_valid(fx) and fx._seq != null and not bounds.grow(60.0).has_point(fx._seq.global_position):
+			_fail("assassinar: overlay do vídeo fora da área da carta")
+		if is_instance_valid(vt2) and vt2.scale != sc0:
+			_fail("assassinar: carta mudou de tamanho")
 	await get_tree().create_timer(1.5).timeout
 	b.queue_free()
 	print("ASSASSINAR: destrução CONTIDA na área da carta: OK")

@@ -1127,7 +1127,7 @@ func _begin_or_resolve_target(pi: int, card: Dictionary, effect: String, source_
 		var t := _strongest(pool)
 		if not t.is_empty():
 			if effect == "assassinar":
-				_apply_assassinar(pi, t)
+				_apply_assassinar(pi, t, source_uid)
 			elif _is_congelar(effect):
 				_apply_congelar(pi, source_uid, t, effect)
 			elif effect == "mordidaVenenosa":
@@ -1180,7 +1180,7 @@ func confirm_targeting(uid: int) -> void:
 	if t.is_empty():
 		log_msg.emit("Fortalecer: sem aliado." if ally_eff else "Bola de Fogo: sem alvo.")
 	elif String(targeting_effect) == "assassinar":
-		_apply_assassinar(pi, t)
+		_apply_assassinar(pi, t, src)
 	elif _is_congelar(String(targeting_effect)):
 		_apply_congelar(pi, src, t, String(targeting_effect))
 	elif String(targeting_effect) == "mordidaVenenosa":
@@ -1450,8 +1450,14 @@ func resolve_fortalecer(uid: int) -> void:
 				break
 
 
-func _apply_assassinar(pi: int, t: Dictionary) -> void:
-	# (1.50.2) eliminação especial: a Tela de Combate roda a morte da ADAGA.
+func _apply_assassinar(pi: int, t: Dictionary, src: int = -1) -> void:
+	# (1.50.2/1.50.6) eliminação especial: a Tela roda o vídeo do campeão
+	# assassino (VEGA = adaga; MIRA OCULTA = mira/tiro) e depois o padrão.
+	var src_name := ""
+	for c in players[pi]["field"]:
+		if int(c["uid"]) == src:
+			src_name = String(c["name"])
+	t["assassinado_por"] = src_name
 	log_msg.emit("Assassinar: %s (P1) foi eliminado!" % t["name"])
 	destroy_champion(1 - pi, t, pi, "assassinar", true)
 

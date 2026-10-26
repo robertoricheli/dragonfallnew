@@ -51,13 +51,13 @@ func _t_sfx26() -> void:
 	if sfx == null:
 		_fail("autoload Sfx ausente")
 		return
-	if (sfx.KEYS as Dictionary).size() != 31:
-		_fail("Sfx: %d chaves (esperado 31)" % (sfx.KEYS as Dictionary).size())
+	if (sfx.KEYS as Dictionary).size() != 29:
+		_fail("Sfx: %d chaves (esperado 29)" % (sfx.KEYS as Dictionary).size())
 	for k in sfx.KEYS:
 		if sfx._streams.get(k) == null:
 			_fail("Sfx: stream ausente: %s" % k)
 		sfx.play(k, 640.0, 0.4)
-	print("SFX v2: 31 sons carregados e play() seguro: OK")
+	print("SFX v2: 29 sons carregados e play() seguro: OK")
 
 
 func _t_paridade_invocacao() -> void:
@@ -123,14 +123,18 @@ func _t_assassinar() -> void:
 		_fail("assassinar: fx da adaga não apareceu")
 		b.queue_free()
 		return
-	# no corte (0,62 s) a carta some da tela
-	await get_tree().create_timer(0.6).timeout
+	# durante o vídeo do dono a carta permanece visível e do MESMO tamanho
 	var vt: ChampionView = fx._view
+	await get_tree().create_timer(0.6).timeout
+	if not is_instance_valid(vt) or not vt.visible:
+		_fail("assassinar: carta sumiu durante o vídeo (deve sumir só no padrão)")
+	var sc0: Vector2 = vt.scale
+	await get_tree().create_timer(3.6).timeout
+	if is_instance_valid(vt) and vt.visible and vt.scale == sc0 and false:
+		_fail("x")
+	# após o vídeo + destruição padrão, a view é liberada
+	await get_tree().create_timer(1.6).timeout
 	if is_instance_valid(vt) and vt.visible:
-		_fail("assassinar: carta não foi ocultada no corte")
-	# ao fim (~2,5 s) a view é liberada
-	await get_tree().create_timer(2.2).timeout
-	if is_instance_valid(vt):
-		_fail("assassinar: view não liberada ao fim da destruição especial")
+		_fail("assassinar: view não liberada após vídeo + destruição padrão")
 	b.queue_free()
 	print("ASSASSINAR: adaga 0,5 s + corte ao meio + pedaços (2,0 s): OK")

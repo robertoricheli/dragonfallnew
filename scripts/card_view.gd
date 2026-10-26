@@ -30,6 +30,7 @@ var _slot_tw: Tween
 var _hl: Panel
 var _face: TextureRect
 var _baker_conn := false
+var _bolhas_ico: TextureRect = null
 
 
 func _init() -> void:
@@ -46,6 +47,9 @@ func setup(card_data: Dictionary, is_face_down := false, zf: float = 1.0) -> voi
 	zoom_factor = zf
 	tooltip_text = ""  # sem caixa de texto ao passar o mouse
 	_build()
+
+
+	_refresh_bolhas()
 
 
 func _build() -> void:
@@ -112,11 +116,31 @@ func _apply_face() -> void:
 		Baker.baked.connect(_on_baked)
 
 
+	_refresh_bolhas()
+
+
 func _on_baked(k: String) -> void:
 	if k == Baker.key_of(card, int(card.get("current_power", card.get("power", 0)))):
 		var t: ImageTexture = Baker.cached(card, int(card.get("current_power", card.get("power", 0))))
 		if t != null:
 			_face.texture = t
+
+
+func _refresh_bolhas() -> void:
+	# (1.50.5) ícone de status BOLHAS na carta em MÃO enquanto o efeito ativo
+	var on: bool = bool(card.get("bolhas", false))
+	if on and _bolhas_ico == null:
+		_bolhas_ico = TextureRect.new()
+		_bolhas_ico.texture = preload("res://assets/ICO_BOLHAS.svg")
+		_bolhas_ico.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_bolhas_ico.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_bolhas_ico.size = Vector2(22, 22)
+		_bolhas_ico.position = Vector2(size.x - 26, 4)
+		_bolhas_ico.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_bolhas_ico)
+	elif not on and _bolhas_ico != null:
+		_bolhas_ico.queue_free()
+		_bolhas_ico = null
 
 
 func _exit_tree() -> void:

@@ -29,13 +29,13 @@ func _t_sfx() -> void:
 	if sfx == null:
 		_fail("autoload Sfx ausente")
 		return
-	if (sfx.KEYS as Dictionary).size() != 31:
-		_fail("Sfx: %d chaves (esperado 31)" % (sfx.KEYS as Dictionary).size())
+	if (sfx.KEYS as Dictionary).size() != 29:
+		_fail("Sfx: %d chaves (esperado 29)" % (sfx.KEYS as Dictionary).size())
 	for k in sfx.KEYS:
 		if sfx._streams.get(k) == null:
 			_fail("Sfx: stream não carregado: %s" % k)
 		sfx.play(k, 640.0, 0.5)   # headless: não deve crashar
-	print("SFX: 31 sons carregados e play() seguro: OK")
+	print("SFX: 29 sons carregados e play() seguro: OK")
 
 
 func _t_ovo_slot_livre() -> void:

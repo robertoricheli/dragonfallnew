@@ -940,8 +940,8 @@ func _land_summon(v: ChampionView, cold: bool, pi: int) -> void:
 		# (1.49.93) enxurrada de fantasmas 0,5 s após o pouso.
 		_pesadelo_sequence(pi, int(v.card["uid"]))
 	elif oe == "rapidez":
-		# (1.50.5) RAPIDEZ: animação divertida de velocidade 1 s após o pouso.
-		_acelerar_sequence(pi, int(v.card["uid"]))
+		# (1.50.6) RAPIDEZ: animação divertida de velocidade 1 s após o pouso.
+		_rapidez_sequence(pi, int(v.card["uid"]))
 	elif oe == "desacelerar":
 		# (1.49.94) relógio mágico no campo adversário 0,5 s após o pouso.
 		_desacelerar_sequence(pi, int(v.card["uid"]))
@@ -1951,6 +1951,21 @@ func _pesadelo_sequence(pi: int, uid: int) -> void:
 	_show_pesadelo_hero(foe)
 
 
+func _rapidez_sequence(pi: int, uid: int) -> void:
+	# (1.50.6) RAPIDEZ: 1 s após entrar em campo, 1,5 s de velocidade divertida.
+	await get_tree().create_timer(1.0).timeout
+	if state == null or not is_inside_tree():
+		return
+	var v: ChampionView = champ_views.get(uid)
+	if v == null or not is_instance_valid(v) or v.dying:
+		return
+	var fx = load("res://scripts/vfx_rapidez.gd").new()
+	fx_layer.add_child(fx)
+	fx.setup(v)
+	Sfx.play("acelerar", v.global_position.x, 0.9)
+	await fx.finished
+
+
 func _acelerar_sequence(pi: int, talent_uid: int = -1) -> void:
 	# (1.50.3) ACELERAÇÃO (Talento): 1 s após a carta entrar em campo, uma
 	# animação DIVERTIDA de velocidade (1,5 s): dashes com pós-imagens da
@@ -2155,10 +2170,27 @@ func _assassinar_death(v: ChampionView, pi: int) -> void:
 		if is_instance_valid(v):
 			v.queue_free()
 		return
+	var style: String = "vega"
+	if String(v.card.get("assassinado_por", "")).find("MIRA") >= 0:
+		style = "mira"
 	var fx = load("res://scripts/vfx_assassinar.gd").new()
 	fx_layer.add_child(fx)
-	fx.setup(v)
+	fx.setup(v, style)
 	await fx.finished
+	if not is_instance_valid(v) or not is_inside_tree():
+		_assassinar_hold[pi] = maxi(0, int(_assassinar_hold.get(pi, 0)) - 1)
+		if is_inside_tree():
+			_layout_field(pi)
+		return
+	# (1.50.6) após o vídeo do dono: destruição PADRÃO da carta
+	var center := v.global_position + v.size * v.scale / 2.0
+	_fx_shards(center, Color(0.85, 0.32, 0.26))
+	_fx_shards(center, Color(0.25, 0.2, 0.3))
+	_fx_smoke(center)
+	_fx_ring(center, Color(1, 0.35, 0.25, 0.9), 26, 130, 0.5)
+	_fx_sparks(center, Color(1, 0.5, 0.3), 7)
+	Sfx.play("destroy", center.x, 0.9)
+	v.play_death()
 	await get_tree().create_timer(0.5).timeout
 	_assassinar_hold[pi] = maxi(0, int(_assassinar_hold.get(pi, 0)) - 1)
 	if is_inside_tree():

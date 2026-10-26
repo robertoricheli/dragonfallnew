@@ -50,8 +50,8 @@ func _t_ovo_slot() -> void:
 		flag["burst"] = true
 		flag["tb"] = (Time.get_ticks_msec() - t0) / 1000.0)
 	fx.setup(Vector2(640, 473))
-	var tw: float = fx._egg_a.texture.get_width() * fx._scale
-	var th: float = fx._egg_a.texture.get_height() * fx._scale
+	var tw: float = fx._seq.texture.get_width() * fx._scale
+	var th: float = fx._seq.texture.get_height() * fx._scale
 	if th < 90.0 or th > 140.0:
 		_fail("ovo: altura %.0f px (esperado 90..140)" % th)
 	if tw > 116.0:
@@ -97,18 +97,18 @@ func _t_relogio_tamanho() -> void:
 	var flag := {"done": false}
 	fx.finished.connect(func() -> void: flag["done"] = true)
 	fx.setup(Vector2(640, 246))
-	if fx._frames.size() != 60:
-		_fail("relogio: %d frames (esperado 60)" % fx._frames.size())
+	if fx._frames.size() != 75:
+		_fail("relogio: %d frames (esperado 75)" % fx._frames.size())
 	var th: float = fx._frames[0].get_height() * fx._scale
 	if th <= 140.0 or th > 190.0:
 		_fail("relogio: altura %.0f px (esperado um pouco > 140 e <= 190)" % th)
 	var guard := 0
-	while not flag["done"] and guard < 500:
+	while not flag["done"] and guard < 900:
 		await get_tree().process_frame
 		guard += 1
 	if not flag["done"]:
 		_fail("relogio: não terminou")
-	print("DESACELERAR-vídeo 60 frames, %.0f px (> carta): OK" % th)
+	print("DESACELERAR-vídeo 75 frames, %.0f px (> carta): OK" % th)
 
 
 func _t_battle_mordida() -> void:
